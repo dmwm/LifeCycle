@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 """
 File: dbs_provider.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>
@@ -35,7 +35,7 @@ class DBSDataProvider(DataProvider):
         output = []
         desc = 'Test_proc_era'
         for _ in range(0, number):
-            ver  = generate_uid(4, '123456789', self._fixed)
+            ver  = int(generate_uid(4, '123456789', self._fixed))
             rec  = dict(processing_era=dict(processing_version=ver, description=desc))
             output.append(rec)
         return output
@@ -96,13 +96,14 @@ class DBSDataProvider(DataProvider):
             prim_type = row['dataset'].get('primary_ds_type', 'mc')
             _, prim, proc, tier = name.split('/')
             group = generate_uid(1, ['Top', 'QCD', 'RelVal'], self._fixed)
-            oconfig = {'release_version':'CMSSW_TEST', 'pset_hash':'NO_PSET_HASH',
-                       'app_name':'Generator', 'output_module_label':'TEST',
-                       'global_tag':'TAG'}
+            def_config = [{'release_version':'CMSSW_TEST',
+                           'pset_hash':'NO_PSET_HASH', 'global_tag':'TAG',
+                           'app_name':'Generator', 'output_module_label':'TEST'}]
+            oconfig = row['dataset'].get('output_configs', def_config)
             doc = {'primary_ds_name': prim, 'processing_ds_name': proc,
                 'data_tier_name': tier, 'physics_group_name': group,
                 'acquisition_era_name': acq_era, 'processing_version': proc_ver,
-                'xtcrosssection': 0.1, 'output_configs':[oconfig],
+                'xtcrosssection': 0.1, 'output_configs':oconfig,
                 'primary_ds_type':'mc', 'dataset_access_type': 'valid',
                 'prep_id':1, 'dataset': name}
             row['dataset'].update(doc)
@@ -241,17 +242,33 @@ class DBSDataProvider(DataProvider):
         row['file']['file_lumi_list'] = records
         return row
 
-    def add_datasets(self, input_prim_ds, number=1):
+    def add_datasets(self, input_prim_proc_acq_tier_config, number=1):
         "Add blocks to a given primary dataset"
-        idict = deepcopy(input_prim_ds)
+        idict    = deepcopy(input_prim_proc_acq_tier_config)
         prim_val = idict['prim_ds']
-        if  isinstance(prim_val, dict):
-            prim_val = [prim_val]
-        output = []
-        for item in prim_val:
-            prim  = item['primary_ds_name']
-            attrs = {'prim':prim}
-            res   = self.datasets(number, **attrs)
+        proc_ver = idict['processing_era']
+        acq_era  = idict['acquisition_era']
+        tier     = idict['tier']
+        config   = idict['configs']
+        func     = lambda x: isinstance(x,dict) and [x] or x
+        prim_val = func(prim_val)
+        proc_ver = func(proc_ver)
+        acq_era  = func(acq_era)
+        tier     = func(tier)
+        config   = func(config)
+        output   = []
+        for item_prim, item_proc, item_acq, item_tier, item_config \
+        in zip(prim_val, proc_ver, acq_era, tier, config):
+            prim = item_prim['primary_ds_name']
+            acq  = item_acq['acquisition_era_name']
+            tier = item_tier['data_tier_name']
+            proc_ver = item_proc['processing_version']
+            attrs = {'prim':prim,
+                     'processing_version':proc_ver,
+                     'acquisition_era_name':acq,
+                     'tier':tier,
+                     'output_configs':item_config}
+            res  = self.datasets(number, **attrs)
             for row in res:
                 output.append(row['dataset'])
         idict['dataset'] = output
