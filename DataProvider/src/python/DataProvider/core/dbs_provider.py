@@ -282,7 +282,7 @@ class DBSDataProvider(DataProvider):
             datasets = [datasets]
         output = []
         for item in datasets:
-            _, prim, proc, tier = idict['dataset'].split('/')
+            _, prim, proc, tier = item['dataset'].split('/')
             attrs = {'prim':prim, 'proc':proc, 'tier':tier}
             res   = self.blocks(number, **attrs)
             for row in res:
