@@ -22,19 +22,17 @@ class PhedexDataProvider(DataProvider):
     def datasets(self, number, **attrs):
         "Generate Phedex datasets meta-data"
         output = super(PhedexDataProvider, self).datasets(number, **attrs)
-        dopen = generate_uid(1, 'yn')
         name = 'global'
         for row in output:
-            doc = {'is-open': dopen, 'dbs_name': name, 'blocks':[]}
+            doc = {'is-open': 'y', 'dbs_name': name, 'blocks':[]}
             row['dataset'].update(doc)
         return output
 
     def blocks(self, number, **attrs):
         "Generate Phedex block meta-data"
         output = super(PhedexDataProvider, self).blocks(number, **attrs)
-        dopen = generate_uid(1, 'yn')
         for row in output:
-            doc = {'is-open': dopen, 'files':[]}
+            doc = {'is-open': 'y', 'files':[]}
             row['block'].update(doc)
         return output
 
@@ -46,6 +44,7 @@ class PhedexDataProvider(DataProvider):
         output = super(PhedexDataProvider, self).files(number)
         # /store/data/acq_era/prim_dataset/data_tier/proc_version/lfn_counter/f.root
         idx = 0
+        gbyte = 1024*1024*1024
         for row in output:
             ver = '%s-v1' % proc
             counter = str(idx).zfill(9)
@@ -54,7 +53,7 @@ class PhedexDataProvider(DataProvider):
             checksum = 'cksum:%s,adler32:%s' \
                     % (generate_uid(4, '1234567890'), \
                         generate_uid(4, '1234567890'))
-            size = random.randint(1, 100)
+            size = random.randint(1*gbyte, 2*gbyte)
             doc = {'checksum': checksum, 'bytes': size, 'name': name}
             row['file'].update(doc)
         return output
