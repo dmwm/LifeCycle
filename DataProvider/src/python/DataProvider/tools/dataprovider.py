@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: ISO-8859-1 -*-
 """
-File: generator.py
+File: dataprovider.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>
 Description: Main tool which generates CMS meta-data
 """
@@ -41,7 +41,7 @@ class GeneratorOptionParser:
             default="", dest="generate", help=msg)
         self.parser.add_option("--in", action="store", type="string",
             default="", dest="input",
-            help="specify input generator JSON file")
+            help="specify input JSON file")
         self.parser.add_option("--out", action="store", type="string",
             default="", dest="output",
             help="specify output JSON file")

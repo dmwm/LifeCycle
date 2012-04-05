@@ -3,4 +3,4 @@
 # find out where DataProvider is installed on a system
 root=`python -c "import DataProvider; print '/'.join(DataProvider.__file__.split('/')[:-1])"`
 # run actual script
-python $root/tools/generator.py ${1+"$@"}
+python $root/tools/dataprovider.py ${1+"$@"}
