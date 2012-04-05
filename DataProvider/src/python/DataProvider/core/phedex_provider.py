@@ -66,15 +66,17 @@ class PhedexDataProvider(DataProvider):
         for row in res:
             buid = generate_block_uid()
             row['block']['name'] = '%s#%s' % (name, buid)
-        blocks = dataset['dataset']['blocks']
-        blocks += res
-        dataset['dataset']['blocks'] = blocks
+        if  dataset['dataset']['is-open'] == 'y':
+            blocks = dataset['dataset']['blocks']
+            blocks += res
         return dataset
 
     def add_files(self, input_dataset, number_of_files=1):
         "Add files to a given dataset"
         dataset = deepcopy(input_dataset)
         for block in dataset['dataset']['blocks']:
+            if  block['block']['is-open'] != 'y':
+                continue
             block_name = block['block']['name']
             _, prim, proc, tier = block_name.split('#')[0].split('/')
             attrs = {'prim':prim, 'proc':proc, 'tier':tier}
@@ -82,7 +84,12 @@ class PhedexDataProvider(DataProvider):
             size = 0
             for row in res:
                 size += row['file']['bytes']
-            block['block']['files'] = res
-            block['block']['size'] = size
-            block['block']['nfiles'] = len(res)
+            if  block['block']['files']:
+                block['block']['files'] += res
+                block['block']['size'] += size
+                block['block']['nfiles'] += len(res)
+            else:
+                block['block']['files'] = res
+                block['block']['size'] = size
+                block['block']['nfiles'] = len(res)
         return dataset
