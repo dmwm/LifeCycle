@@ -17,8 +17,10 @@ from DataProvider.utils.utils import deepcopy
 
 class DBSDataProvider(DataProvider):
     "DBSDataProvider"
-    def __init__(self, fixed=False):
+    def __init__(self, fixed=False, runs=5, lumis=5):
         DataProvider.__init__(self, fixed)
+        self.runs_per_file = runs
+        self.lumis_per_run = lumis
 
     def prim_ds(self, number, **attrs):
         "Generate DBS primary dataset meta-data"
@@ -76,6 +78,9 @@ class DBSDataProvider(DataProvider):
     def prim_proc_acq_tier_config(self, number, **attrs):
         "Generate DBS prim/proc/acq/tier/output config meta-data in one step"
         output = []
+        if  number != 1:
+            msg = "This action prohibit generation of muliple entities in one step"
+            raise Exception(msg)
         for _ in range(0, number):
             doc = {}
             doc.update(self.prim_ds(1)[0])
@@ -165,15 +170,30 @@ class DBSDataProvider(DataProvider):
                 acquisition_era=acq_era['acquisition_era'], files=files)
         return dict(blockDump=rec)
 
+    def file_lumi_list(self):
+        "Generate file lumi list"
+        output = []
+        for _ in range(0, self.runs_per_file):
+            run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
+            for _ in range(0, self.lumis_per_run):
+                lumi_num = random.randint(1, 100)
+                row = dict(run_num=run_num, lumi_section_num=lumi_num)
+                output.append(row)
+        return output
+
     def files(self, number, **attrs):
         "Generate DBS files meta-data"
+        prim = attrs.get('prim', 'prim')
+        proc = attrs.get('proc', 'proc')
+        tier = attrs.get('tier', 'tier')
+        for key in ['prim', 'proc', 'tier']:
+            if  attrs.has_key(key):
+                del attrs[key]
+        path = '/%s/%s/%s' % (prim, proc, tier)
         output = super(DBSDataProvider, self).files(number, **attrs)
         oconfig = {'release_version':'CMSSW_TEST', 'pset_hash':'NO_PSET_HASH',
                    'app_name':'Generator', 'output_module_label':'TEST',
                    'global_tag':'TAG'}
-        prim = attrs.get('prim', 'prim')
-        proc = attrs.get('proc', 'proc')
-        tier = attrs.get('tier', 'tier')
         # /store/data/acq_era/prim_dataset/data_tier/proc_version/lfn_counter/f.root
         idx = 0
         for row in output:
@@ -186,9 +206,11 @@ class DBSDataProvider(DataProvider):
             doc = {'logical_file_name': name,
                 'file_size': size, 'file_type': ftype,
                 'check_sum': generate_uid(8), 'adler32': generate_uid(8),
-                'file_output_config_list': [oconfig], 'file_lumi_list': [],
+                'file_output_config_list': [oconfig],
+                'file_lumi_list': self.file_lumi_list(),
                 'file_parent_list': [], 'auto_cross_section': 0.0,
                 'event_count': random.randint(10, 10000),
+                'dataset': path,
                 'file_type_id': 1, 'md5':'NOTSET'}
             row['file'].update(doc)
             for att in ['name']:
@@ -289,3 +311,15 @@ class DBSDataProvider(DataProvider):
                 output.append(row['block'])
         idict['block'] = output
         return idict
+
+    def add_files(self, input_dataset, number_of_files=1):
+        "Add files to a given dataset"
+        record  = deepcopy(input_dataset)
+        block   = record['block']
+        if  not isinstance(block, list):
+            block = [block]
+        for rec in block:
+            _, prim, proc, tier = rec['block_name'].split('#')[0].split('/')
+            attrs = {'prim':prim, 'proc':proc, 'tier':tier, 'block_name':rec['block_name']}
+            res  = self.files(number_of_files, **attrs)
+        return res
