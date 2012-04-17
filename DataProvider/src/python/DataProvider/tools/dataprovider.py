@@ -61,6 +61,12 @@ class GeneratorOptionParser:
         msg += 'Supported actions can be obtained with --system=<system> option'
         self.parser.add_option("--action", action="store", type="string",
             default="", dest="action", help=msg)
+        self.parser.add_option("--runs", action="store",
+            type="int", default=5, dest="runs",
+            help="number of runs per file, default is 5")
+        self.parser.add_option("--lumis", action="store",
+            type="int", default=5, dest="lumis",
+            help="number of lumis per run, default is 5")
     def get_opt(self):
         "Returns parse list of options"
         return self.parser.parse_args()
@@ -71,7 +77,7 @@ def main():
     opts, _args = optmgr.get_opt()
 
     if  opts.system == 'dbs':
-        mgr = DBSDataProvider(opts.fixed)
+        mgr = DBSDataProvider(opts.fixed, opts.runs, opts.lumis)
     elif opts.system == 'phedex':
         mgr = PhedexDataProvider(opts.fixed)
     else:
