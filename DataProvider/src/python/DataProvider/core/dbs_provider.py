@@ -79,7 +79,7 @@ class DBSDataProvider(DataProvider):
         "Generate DBS prim/proc/acq/tier/output config meta-data in one step"
         output = []
         if  number != 1:
-            msg = "This action prohibit generation of muliple entities in one step"
+            msg = "This action prohibits generation of prim_proc_acq_tier_config in one step"
             raise Exception(msg)
         for _ in range(0, number):
             doc = {}
