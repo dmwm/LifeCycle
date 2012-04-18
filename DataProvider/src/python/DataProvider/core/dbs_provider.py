@@ -177,7 +177,7 @@ class DBSDataProvider(DataProvider):
             run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
             for _ in range(0, self.lumis_per_run):
                 lumi_num = random.randint(1, 100)
-                row = dict(run_num=run_num, lumi_section_num=lumi_num)
+                row = dict(run_num=str(run_num), lumi_section_num=str(lumi_num))
                 output.append(row)
         return output
 
@@ -186,14 +186,16 @@ class DBSDataProvider(DataProvider):
         prim = attrs.get('prim', 'prim')
         proc = attrs.get('proc', 'proc')
         tier = attrs.get('tier', 'tier')
-        for key in ['prim', 'proc', 'tier']:
+        oconfig = attrs.get('output_configs',{'release_version':'CMSSW_TEST',
+                                              'pset_hash':'NO_PSET_HASH',
+                                              'app_name':'Generator',
+                                              'output_module_label':'TEST',
+                                              'global_tag':'TAG'})
+        for key in ['prim', 'proc', 'tier','output_configs']:
             if  attrs.has_key(key):
                 del attrs[key]
         path = '/%s/%s/%s' % (prim, proc, tier)
         output = super(DBSDataProvider, self).files(number, **attrs)
-        oconfig = {'release_version':'CMSSW_TEST', 'pset_hash':'NO_PSET_HASH',
-                   'app_name':'Generator', 'output_module_label':'TEST',
-                   'global_tag':'TAG'}
         # /store/data/acq_era/prim_dataset/data_tier/proc_version/lfn_counter/f.root
         idx = 0
         for row in output:
@@ -259,7 +261,7 @@ class DBSDataProvider(DataProvider):
             run  = random.randint(100000, 200000)
             for _ in range(0, random.randint(1, 10)):
                 lumi = random.randint(1, 100)
-                rec = {'run_num': run, 'lumi_section_num': lumi}
+                rec = {'run_num': str(run), 'lumi_section_num': str(lumi)}
                 records.append(rec)
         row['file']['file_lumi_list'] = records
         return row
@@ -289,7 +291,7 @@ class DBSDataProvider(DataProvider):
                      'processing_version':proc_ver,
                      'acquisition_era_name':acq,
                      'tier':tier,
-                     'output_configs':item_config}
+                     'output_configs':[item_config]}
             res  = self.datasets(number, **attrs)
             for row in res:
                 output.append(row['dataset'])
@@ -320,6 +322,6 @@ class DBSDataProvider(DataProvider):
             block = [block]
         for rec in block:
             _, prim, proc, tier = rec['block_name'].split('#')[0].split('/')
-            attrs = {'prim':prim, 'proc':proc, 'tier':tier, 'block_name':rec['block_name']}
+            attrs = {'prim':prim, 'proc':proc, 'tier':tier, 'block_name':rec['block_name'], 'output_configs':record['configs']}
             res  = self.files(number_of_files, **attrs)
         return res
