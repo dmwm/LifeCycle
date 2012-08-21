@@ -46,9 +46,10 @@ class PhedexDataProvider(DataProvider):
         idx = 0
         gbyte = 1024*1024*1024
         for row in output:
-            ver = '%s-v1' % proc
+            era, proc_ds_name, ver = proc.split('-')
+            ver = ver[1:] #remove v from v4711
             counter = str(idx).zfill(9)
-            prefix = '/store/data/era/%s/%s/%s/%s/' % (prim, tier, ver, counter)
+            prefix = '/store/data/%s/%s/%s/%s/%s/' % (era, prim, tier, ver, counter)
             name = prefix + row['file']['name']
             checksum = 'cksum:%s,adler32:%s' \
                     % (generate_uid(4, '1234567890'), \
