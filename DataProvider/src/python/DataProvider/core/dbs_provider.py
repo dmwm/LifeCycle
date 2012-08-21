@@ -21,6 +21,9 @@ class DBSDataProvider(DataProvider):
         DataProvider.__init__(self, fixed)
         self.runs_per_file = runs
         self.lumis_per_run = lumis
+        #initial start values for run and lumi generation
+        self._run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
+        self._lumi_num = random.randint(1, 100)
 
     def prim_ds(self, number, **attrs):
         "Generate DBS primary dataset meta-data"
@@ -173,11 +176,11 @@ class DBSDataProvider(DataProvider):
     def file_lumi_list(self):
         "Generate file lumi list"
         output = []
-        for _ in range(0, self.runs_per_file):
-            run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
+        for _ in xrange(0, self.runs_per_file):
+            self._run_num +=1
             for _ in range(0, self.lumis_per_run):
-                lumi_num = random.randint(1, 100)
-                row = dict(run_num=str(run_num), lumi_section_num=str(lumi_num))
+                self._lumi_num +=1
+                row = dict(run_num=str(self._run_num), lumi_section_num=str(self._lumi_num))
                 output.append(row)
         return output
 
