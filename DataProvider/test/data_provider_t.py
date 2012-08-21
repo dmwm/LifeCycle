@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 """
 File: data_provider_t.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 """
 File: DataProvider.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>
@@ -45,7 +45,7 @@ class DataProvider(object):
         output = []
         for _ in range(0, number):
             prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
-            proc = attrs.get('proc', generate_uid(3, self._seed, self._fixed))
+            proc = attrs.get('proc', "%s-%s-v%i" % (generate_uid(3, self._seed, self._fixed), generate_uid(3, self._seed, self._fixed), random.randint(1, 100)))
             tier = attrs.get('tier', generate_uid(1, self._tiers, self._fixed))
             name = '/%s/%s/%s' % (prim, proc, tier)
             doc  = dict(name=name)
