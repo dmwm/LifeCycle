@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-*- coding: iso-8859-1 -*-
+#pylint: disable-msg=W0201,R0902
 """
 File: phedex_provider.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>
@@ -11,8 +12,50 @@ import random
 
 # package modules
 from DataProvider.core.data_provider import DataProvider
+from DataProvider.core.data_provider import BaseProvider
 from DataProvider.core.data_provider import generate_uid, generate_block_uid
 from DataProvider.utils.utils import deepcopy
+
+class PhedexProvider(BaseProvider):
+    "Phedex data provider class with persistent storage"
+    def __init__(self):
+        super(PhedexProvider, self).__init__()
+
+    def dataset(self):
+        "return dataset object"
+        if not hasattr(self, '_dataset'):
+            self.generate_dataset()
+
+        data = deepcopy(self._dataset)
+        data.update({'is-open': self.dataset_is_open})
+
+        for block in data['blocks']:
+            for this_file in block['block']['files']:
+                #update file information
+                this_file['file'].update({"checksum": "cksum:6551,adler32:5040",
+                                          "bytes": 1703432715})
+
+            #update block information
+            size = sum([f['file']['bytes'] for f in block['block']['files']])
+            block['block'].update({"nfiles": len(block['block']['files']),
+                                   "is-open": 'y',
+                                   "size": size})
+
+            return dict(dataset=data)
+
+    @property
+    def dataset_is_open(self):
+        "return dataset_is_open flag"
+        if not hasattr(self, "_dataset_is_open"):
+            self._dataset_is_open = 'y'
+        return self._dataset_is_open
+
+    @property
+    def dbs_name(self):
+        "return dbs name"
+        if not hasattr(self, "_dbs_name"):
+            self._dbs_name = 'global'
+        return self._dbs_name
 
 class PhedexDataProvider(DataProvider):
     "PhedexDataProvider"
