@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-*- coding: iso-8859-1 -*-
+#pylint: disable-msg=W0201,R0902
 """
 File: DataProvider.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>
@@ -13,7 +14,8 @@ has basic attributes, e.g. size.
 # system modules
 import random
 
-def generate_uid(base, seed='qwertyuiopasdfghjklzxcvbnm1234567890', fixed=False):
+def generate_uid(base, seed='qwertyuiopasdfghjklzxcvbnm1234567890',
+                    fixed=False):
     "Generate UID for given base"
     if  fixed:
         while base > len(seed):
@@ -32,6 +34,124 @@ def generate_block_uid():
         + generate_uid(4) + '-' + generate_uid(4) + '-' + generate_uid(12)
     return uid
 
+class BaseProvider(object):
+    "BaseProvider class generates and holds CMS meta-data"
+    _shared_information = {}
+    _preserve_information = ('_seed', '_tiers', '_fixed')
+
+    def __new__(cls, *args, **kwds):
+        inst = object.__new__(cls, *args, **kwds)
+        inst.__dict__ = cls._shared_information
+        return inst
+
+    @classmethod
+    def reset(cls):
+        "Reset internal data structures"
+        for key in cls._shared_information.keys():
+            if key not in cls._preserve_information:
+                del cls._shared_information[key]
+
+    def __init__(self, fixed=False):
+        "constructor"
+        self._seed  = 'qwertyuiopasdfghjklzxcvbnm'
+        self._tiers = ['RAW', 'GEN', 'SIM', 'RECO', 'AOD']
+        self._fixed = fixed
+
+    def generate_dataset(self):
+        "generate dataset object"
+        self._dataset = {'blocks': [],
+                         'name': self.dataset_name}
+
+    def add_blocks(self, number_of_blocks):
+        "add blocks to existing dataset object"
+        for _ in xrange(number_of_blocks):
+            block = {'block': {'files': [], 'name': self.block_name}}
+            self._dataset['blocks'].append(block)
+
+    def add_files(self, number_of_files):
+        "add files to existing block object"
+        for block in self._dataset["blocks"]:
+            for _ in xrange(number_of_files):
+                filedict = {'file': {'name': self.file_name}}
+                block['block']['files'].append(filedict)
+
+    @property
+    def block_name(self):
+        "return block name"
+        return '/%s/%s/%s#%s' % (self.primary_dataset_name,
+                                 self.processed_dataset,
+                                 self.tier,
+                                 generate_block_uid())
+
+    @property
+    def dataset_name(self):
+        "return dataset name"
+        if not hasattr(self, "_dataset_name"):
+            self._dataset_name = '/%s/%s/%s' % \
+                    (self.primary_dataset_name,
+                     self.processed_dataset,
+                     self.tier)
+        return self._dataset_name
+
+    @property
+    def file_name(self):
+        "return file name"
+        counter = str(0).zfill(9)
+        return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
+            (self.acquisition_era_name,
+             self.primary_dataset_name,
+             self.tier,
+             self.processing_version,
+             counter,
+             generate_uid(5, self._seed, self._fixed))
+
+    @property
+    def primary_dataset_name(self):
+        "return primary dataset name"
+        if not hasattr(self, '_primary_dataset_name'):
+            self._primary_dataset_name = \
+                generate_uid(3, self._seed, self._fixed)
+        return self._primary_dataset_name
+
+    @property
+    def processed_dataset(self):
+        "return processed dataset path"
+        if not hasattr(self, '_processed_dataset'):
+            self._processed_dataset = '%s-%s-v%s' % \
+                (self.acquisition_era_name,
+                self.processed_dataset_name,
+                self.processing_version)
+        return self._processed_dataset
+
+    @property
+    def acquisition_era_name(self):
+        "return acquisition era name"
+        if not hasattr(self, '_acquisition_era_name'):
+            self._acquisition_era_name = 'pms'
+        return self._acquisition_era_name
+
+    @property
+    def processed_dataset_name(self):
+        "return processed dataset name"
+        if not hasattr(self, '_processed_dataset_name'):
+            self._processed_dataset_name = \
+                generate_uid(3, self._seed, self._fixed)
+        return self._processed_dataset_name
+
+    @property
+    def processing_version(self):
+        "return processing version"
+        if not hasattr(self, '_processing_version'):
+            self._processing_version = '63'
+        return self._processing_version
+
+    @property
+    def tier(self):
+        "return tier name"
+        if not hasattr(self, '_tier'):
+            self._tier = generate_uid(1, self._tiers, self._fixed)
+        return self._tier
+
 class DataProvider(object):
     "DataProvider class generates CMS meta-data"
 
@@ -45,7 +165,10 @@ class DataProvider(object):
         output = []
         for _ in range(0, number):
             prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
-            proc = attrs.get('proc', "%s-%s-v%i" % (generate_uid(3, self._seed, self._fixed), generate_uid(3, self._seed, self._fixed), random.randint(1, 100)))
+            proc = attrs.get('proc', "%s-%s-v%i" % \
+                    (generate_uid(3, self._seed, self._fixed),
+                        generate_uid(3, self._seed, self._fixed),
+                        random.randint(1, 100)))
             tier = attrs.get('tier', generate_uid(1, self._tiers, self._fixed))
             name = '/%s/%s/%s' % (prim, proc, tier)
             doc  = dict(name=name)
