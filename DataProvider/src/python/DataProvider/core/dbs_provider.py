@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-*- coding: iso-8859-1 -*-
+#pylint: disable-msg=W0201,R0902
 """
 File: dbs_provider.py
 Author: Valentin Kuznetsov <vkuznet@gmail.com>
@@ -7,13 +8,70 @@ Description: DBS meta-data provider
 """
 
 # system modules
-import time
 import random
 
 # package modules
 from DataProvider.core.data_provider import DataProvider
+from DataProvider.core.data_provider import BaseProvider
 from DataProvider.core.data_provider import generate_block_uid, generate_uid
 from DataProvider.utils.utils import deepcopy
+
+class DBSProvider(BaseProvider):
+    "DBS data provider class with persistent storage"
+    def __init__(self):
+        super(DBSProvider, self).__init__()
+
+    def dataset(self):
+        "return dataset object"
+        doc = {'primary_ds_name': self.primary_dataset_name,
+            'processing_ds_name': self.processed_dataset_name,
+            'data_tier_name': self.tier,
+            'physics_group_name': self.physics_group_name,
+            'acquisition_era_name': self.acquisition_era_name,
+            'processing_version': self.processing_version,
+            'xtcrosssection': self.xtc_cross_section,
+            'output_configs': self.output_config,
+            'primary_ds_type':'mc',
+            'dataset_access_type': self.dataset_access_type,
+            'prep_id':1,
+            'dataset': self.dataset_name}
+        return dict(dataset=doc)
+
+    @property
+    def physics_group_name(self):
+        "return physics group name"
+        if not hasattr(self, "_physics_group_name"):
+            self._physics_group_name = "Tracker"
+        return self._physics_group_name
+
+    @property
+    def xtc_cross_section(self):
+        "return cross section value"
+        if not hasattr(self, '_xtc_cross_section'):
+            self._xtc_cross_section = 123.0
+        return self._xtc_cross_section
+
+    @property
+    def dataset_access_type(self):
+        "return dataset access type"
+        if not hasattr(self,'_dataset_access_type'):
+            self._dataset_access_type = "VALID"
+        return self._dataset_access_type
+
+    @property
+    def output_config(self):
+        "Generate DBS output config meta-data"
+        output = []
+        app = 'cmsRun'
+        rel = 'CMSSW_1_2_3'
+        tag = 'TAG'
+        lab = 'Ouput_module_label'
+        phash = generate_uid(32)
+        rec  = dict(configs=\
+                dict(release_version=rel, pset_hash=phash, app_name=app,
+                    output_module_label=lab, global_tag=tag))
+        return rec
+
 
 class DBSDataProvider(DataProvider):
     "DBSDataProvider"
@@ -31,7 +89,8 @@ class DBSDataProvider(DataProvider):
         for _ in range(0, number):
             prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
             data_type = generate_uid(1, ['mc', 'data'], self._fixed)
-            rec = dict(prim_ds=dict(primary_ds_name=prim, primary_ds_type=data_type))
+            rec = dict(prim_ds=\
+                    dict(primary_ds_name=prim, primary_ds_type=data_type))
             output.append(rec)
         return output
 
@@ -41,7 +100,8 @@ class DBSDataProvider(DataProvider):
         desc = 'Test_proc_era'
         for _ in range(0, number):
             ver  = int(generate_uid(4, '123456789', self._fixed))
-            rec  = dict(processing_era=dict(processing_version=ver, description=desc))
+            rec  = dict(processing_era=\
+                    dict(processing_version=ver, description=desc))
             output.append(rec)
         return output
 
@@ -51,7 +111,8 @@ class DBSDataProvider(DataProvider):
         desc = 'Test_acquisition_era'
         for _ in range(0, number):
             ver  = generate_uid(4, self._seed, self._fixed)
-            rec  = dict(acquisition_era=dict(acquisition_era_name=ver, description=desc))
+            rec  = dict(acquisition_era=\
+                    dict(acquisition_era_name=ver, description=desc))
             output.append(rec)
         return output
 
@@ -73,7 +134,8 @@ class DBSDataProvider(DataProvider):
         lab = 'Ouput_module_label'
         for _ in range(0, number):
             phash = generate_uid(32)
-            rec  = dict(configs=dict(release_version=rel, pset_hash=phash, app_name=app,
+            rec  = dict(configs=\
+                    dict(release_version=rel, pset_hash=phash, app_name=app,
                         output_module_label=lab, global_tag=tag))
             output.append(rec)
         return output
@@ -177,9 +239,9 @@ class DBSDataProvider(DataProvider):
         "Generate file lumi list"
         output = []
         for _ in xrange(0, self.runs_per_file):
-            self._run_num +=1
+            self._run_num += 1
             for _ in range(0, self.lumis_per_run):
-                self._lumi_num +=1
+                self._lumi_num += 1
                 row = dict(run_num=str(self._run_num), lumi_section_num=str(self._lumi_num))
                 output.append(row)
         return output
@@ -189,12 +251,12 @@ class DBSDataProvider(DataProvider):
         prim = attrs.get('prim', 'prim')
         proc = attrs.get('proc', 'proc')
         tier = attrs.get('tier', 'tier')
-        oconfig = attrs.get('output_configs',{'release_version':'CMSSW_TEST',
+        oconfig = attrs.get('output_configs', {'release_version':'CMSSW_TEST',
                                               'pset_hash':'NO_PSET_HASH',
                                               'app_name':'Generator',
                                               'output_module_label':'TEST',
                                               'global_tag':'TAG'})
-        for key in ['prim', 'proc', 'tier','output_configs']:
+        for key in ['prim', 'proc', 'tier', 'output_configs']:
             if  attrs.has_key(key):
                 del attrs[key]
         path = '/%s/%s/%s' % (prim, proc, tier)
@@ -277,7 +339,7 @@ class DBSDataProvider(DataProvider):
         acq_era  = idict['acquisition_era']
         tier     = idict['tier']
         config   = idict['configs']
-        func     = lambda x: isinstance(x,dict) and [x] or x
+        func     = lambda x: isinstance(x, dict) and [x] or x
         prim_val = func(prim_val)
         proc_ver = func(proc_ver)
         acq_era  = func(acq_era)
