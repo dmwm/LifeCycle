@@ -32,8 +32,7 @@ class PhedexProvider(BaseProvider):
         for block in data['blocks']:
             for this_file in block['block']['files']:
                 #update file information
-                this_file['file'].update({"checksum": "cksum:6551,adler32:5040",
-                                          "bytes": 1703432715})
+                this_file['file'].update({"bytes": 1703432715})
 
             #update block information
             size = sum([f['file']['bytes'] for f in block['block']['files']])

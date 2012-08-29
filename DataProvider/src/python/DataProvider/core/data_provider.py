@@ -72,7 +72,8 @@ class BaseProvider(object):
         "add files to existing block object"
         for block in self._dataset["blocks"]:
             for _ in xrange(number_of_files):
-                filedict = {'file': {'name': self.file_name}}
+                filedict = {'file': {'name': self.file_name,
+                                     'checksum': "cksum:%s,adler32:%s" % (self.cksum, self.adler32)}}
                 block['block']['files'].append(filedict)
 
     @property
@@ -89,6 +90,18 @@ class BaseProvider(object):
         if not hasattr(self, "_block_is_open"):
             self._block_is_open = 'y'
         return self._block_is_open
+
+    @property
+    def chksum(self):
+        if not hasattr(self, '_chksum'):
+            self._chksum = 6551
+        return self._chksum
+
+    @property
+    def adler32(self):
+        if not hasattr(self, '_adler32'):
+            self._adler32 = 5040
+        return self._adler32
 
     @property
     def dataset_name(self):
