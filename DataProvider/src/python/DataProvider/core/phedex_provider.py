@@ -27,7 +27,8 @@ class PhedexProvider(BaseProvider):
             self.generate_dataset()
 
         data = deepcopy(self._dataset)
-        data.update({'is-open': self.dataset_is_open})
+        data.update({'is-open': self.dataset_is_open,
+                     'dbs_name': self.dbs_name})
 
         for block in data['blocks']:
             #update block information
