@@ -37,7 +37,7 @@ class PhedexProvider(BaseProvider):
                                    "is-open": self.block_is_open,
                                    "size": size})
 
-            return dict(dataset=data)
+        return dict(dataset=data)
 
     @property
     def dataset_is_open(self):
