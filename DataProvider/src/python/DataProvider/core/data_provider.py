@@ -52,7 +52,7 @@ class BaseProvider(object):
                 del cls._shared_information[key]
 
         #reset initial starting values for run numbers and lumi sections
-        cls._shared_information['_run_num']  = int('1' + generate_uid(5, '1234567890', self._fixed))
+        cls._shared_information['_run_num']  = int('1' + generate_uid(5, '1234567890', cls._shared_information['_fixed']))
         cls._shared_information['_lumi_sec'] = random.randint(1, 100)
 
     def __init__(self, fixed=False):
@@ -73,28 +73,45 @@ class BaseProvider(object):
     def add_blocks(self, number_of_blocks):
         "add blocks to existing dataset object"
         for _ in xrange(number_of_blocks):
-            block = {'block': {'files': [], 'name': self.block_name}}
+            block = {'block': {'files': [], 'name': self._generate_block_name()}}
             self._dataset['blocks'].append(block)
 
     def add_files(self, number_of_files):
         "add files to existing block object"
         for block in self._dataset["blocks"]:
             for _ in xrange(number_of_files):
-                filedict = {'file': {'name': self.file_name,
-                                     'checksum': "cksum:%s,adler32:%s" % (self.cksum, self.adler32),
-                                     'bytes': self.generate_file_size()}}
+                filedict = {'file': {'name': self._generate_file_name(),
+                                     'checksum': "cksum:%s,adler32:%s" % (self._generate_cksum(), self._generate_adler32()),
+                                     'bytes': self._generate_file_size()}}
                 block['block']['files'].append(filedict)
 
-    def generate_file_size(self):
-        return 1703432715
+    def _generate_adler32(self):
+        return random.randint(1000,9999)
 
-    @property
-    def block_name(self):
-        "return block name"
+    def _generate_block_name(self):
+        "generates new block name"
         return '/%s/%s/%s#%s' % (self.primary_ds_name,
                                  self.processed_dataset,
                                  self.tier,
                                  generate_block_uid())
+
+    def _generate_cksum(self):
+        return random.randint(1000,9999)
+
+    def _generate_file_name(self):
+        "generates new file name"
+        counter = str(0).zfill(9)
+        return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
+            (self.acquisition_era_name,
+             self.primary_ds_name,
+             self.tier,
+             self.processing_version,
+             counter,
+             generate_uid(5, self._seed, self._fixed))
+
+    def _generate_file_size(self, func='gauss', params=(1000000000,90000000)):
+        "generates new file size"
+        return int(abs(getattr(random,func)(*params)))
 
     @property
     def block_is_open(self):
@@ -102,18 +119,6 @@ class BaseProvider(object):
         if not hasattr(self, "_block_is_open"):
             self._block_is_open = 'y'
         return self._block_is_open
-
-    @property
-    def cksum(self):
-        if not hasattr(self, '_chksum'):
-            self._chksum = 6551
-        return self._chksum
-
-    @property
-    def adler32(self):
-        if not hasattr(self, '_adler32'):
-            self._adler32 = 5040
-        return self._adler32
 
     @property
     def dataset_name(self):
@@ -124,18 +129,6 @@ class BaseProvider(object):
                      self.processed_dataset,
                      self.tier)
         return self._dataset_name
-
-    @property
-    def file_name(self):
-        "return file name"
-        counter = str(0).zfill(9)
-        return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
-            (self.acquisition_era_name,
-             self.primary_ds_name,
-             self.tier,
-             self.processing_version,
-             counter,
-             generate_uid(5, self._seed, self._fixed))
 
     @property
     def primary_ds_name(self):
@@ -159,7 +152,8 @@ class BaseProvider(object):
     def acquisition_era_name(self):
         "return acquisition era name"
         if not hasattr(self, '_acquisition_era_name'):
-            self._acquisition_era_name = 'pms'
+            self._acquisition_era_name = \
+                generate_uid(3, self._seed, self._fixed)
         return self._acquisition_era_name
 
     @property
@@ -174,7 +168,7 @@ class BaseProvider(object):
     def processing_version(self):
         "return processing version"
         if not hasattr(self, '_processing_version'):
-            self._processing_version = '63'
+            self._processing_version = random.randint(1, 100)
         return self._processing_version
 
     @property
