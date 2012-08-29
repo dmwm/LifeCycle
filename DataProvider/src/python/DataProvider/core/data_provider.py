@@ -37,7 +37,7 @@ def generate_block_uid():
 class BaseProvider(object):
     "BaseProvider class generates and holds CMS meta-data"
     _shared_information = {}
-    _preserve_information = ('_seed', '_tiers', '_fixed')
+    _preserve_information = ('_seed', '_tiers', '_fixed', '_run_num', '_lumi_sec')
 
     def __new__(cls, *args, **kwds):
         inst = object.__new__(cls, *args, **kwds)
@@ -51,11 +51,19 @@ class BaseProvider(object):
             if key not in cls._preserve_information:
                 del cls._shared_information[key]
 
+        #reset initial starting values for run numbers and lumi sections
+        cls._shared_information['_run_num']  = int('1' + generate_uid(5, '1234567890', self._fixed))
+        cls._shared_information['_lumi_sec'] = random.randint(1, 100)
+
     def __init__(self, fixed=False):
         "constructor"
         self._seed  = 'qwertyuiopasdfghjklzxcvbnm'
         self._tiers = ['RAW', 'GEN', 'SIM', 'RECO', 'AOD']
         self._fixed = fixed
+
+        #set starting values for the run number and lumi section to avoid duplicated entries in a block
+        self._run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
+        self._lumi_sec = random.randint(1, 100)
 
     def generate_dataset(self):
         "generate dataset object"
