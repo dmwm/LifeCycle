@@ -30,10 +30,6 @@ class PhedexProvider(BaseProvider):
         data.update({'is-open': self.dataset_is_open})
 
         for block in data['blocks']:
-            for this_file in block['block']['files']:
-                #update file information
-                this_file['file'].update({"bytes": 1703432715})
-
             #update block information
             size = sum([f['file']['bytes'] for f in block['block']['files']])
             block['block'].update({"nfiles": len(block['block']['files']),

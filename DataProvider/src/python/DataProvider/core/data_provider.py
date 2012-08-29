@@ -81,13 +81,17 @@ class BaseProvider(object):
         for block in self._dataset["blocks"]:
             for _ in xrange(number_of_files):
                 filedict = {'file': {'name': self.file_name,
-                                     'checksum': "cksum:%s,adler32:%s" % (self.cksum, self.adler32)}}
+                                     'checksum': "cksum:%s,adler32:%s" % (self.cksum, self.adler32),
+                                     'bytes': self.generate_file_size()}}
                 block['block']['files'].append(filedict)
+
+    def generate_file_size(self):
+        return 1703432715
 
     @property
     def block_name(self):
         "return block name"
-        return '/%s/%s/%s#%s' % (self.primary_dataset_name,
+        return '/%s/%s/%s#%s' % (self.primary_ds_name,
                                  self.processed_dataset,
                                  self.tier,
                                  generate_block_uid())
@@ -100,7 +104,7 @@ class BaseProvider(object):
         return self._block_is_open
 
     @property
-    def chksum(self):
+    def cksum(self):
         if not hasattr(self, '_chksum'):
             self._chksum = 6551
         return self._chksum
@@ -116,7 +120,7 @@ class BaseProvider(object):
         "return dataset name"
         if not hasattr(self, "_dataset_name"):
             self._dataset_name = '/%s/%s/%s' % \
-                    (self.primary_dataset_name,
+                    (self.primary_ds_name,
                      self.processed_dataset,
                      self.tier)
         return self._dataset_name
@@ -127,19 +131,19 @@ class BaseProvider(object):
         counter = str(0).zfill(9)
         return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
             (self.acquisition_era_name,
-             self.primary_dataset_name,
+             self.primary_ds_name,
              self.tier,
              self.processing_version,
              counter,
              generate_uid(5, self._seed, self._fixed))
 
     @property
-    def primary_dataset_name(self):
+    def primary_ds_name(self):
         "return primary dataset name"
-        if not hasattr(self, '_primary_dataset_name'):
-            self._primary_dataset_name = \
+        if not hasattr(self, '_primary_ds_name'):
+            self._primary_ds_name = \
                 generate_uid(3, self._seed, self._fixed)
-        return self._primary_dataset_name
+        return self._primary_ds_name
 
     @property
     def processed_dataset(self):
