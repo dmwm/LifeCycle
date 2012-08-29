@@ -73,7 +73,9 @@ class BaseProvider(object):
     def add_blocks(self, number_of_blocks):
         "add blocks to existing dataset object"
         for _ in xrange(number_of_blocks):
-            block = {'block': {'files': [], 'name': self._generate_block_name()}}
+            block = {'block': {'files': [],
+                               'name': self._generate_block_name(),
+                               'is-open': self._generate_block_is_open()}}
             self._dataset['blocks'].append(block)
 
     def add_files(self, number_of_files):
@@ -95,6 +97,9 @@ class BaseProvider(object):
                                  self.tier,
                                  generate_block_uid())
 
+    def _generate_block_is_open(self):
+        return 'y'
+
     def _generate_cksum(self):
         return random.randint(1000,9999)
 
@@ -112,13 +117,6 @@ class BaseProvider(object):
     def _generate_file_size(self, func='gauss', params=(1000000000,90000000)):
         "generates new file size"
         return int(abs(getattr(random,func)(*params)))
-
-    @property
-    def block_is_open(self):
-        "return block_is_open flag"
-        if not hasattr(self, "_block_is_open"):
-            self._block_is_open = 'y'
-        return self._block_is_open
 
     @property
     def dataset_name(self):
