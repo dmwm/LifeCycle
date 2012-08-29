@@ -84,6 +84,13 @@ class BaseProvider(object):
                                  generate_block_uid())
 
     @property
+    def block_is_open(self):
+        "return block_is_open flag"
+        if not hasattr(self, "_block_is_open"):
+            self._block_is_open = 'y'
+        return self._block_is_open
+
+    @property
     def dataset_name(self):
         "return dataset name"
         if not hasattr(self, "_dataset_name"):

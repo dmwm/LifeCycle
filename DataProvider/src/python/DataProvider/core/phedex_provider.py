@@ -38,7 +38,7 @@ class PhedexProvider(BaseProvider):
             #update block information
             size = sum([f['file']['bytes'] for f in block['block']['files']])
             block['block'].update({"nfiles": len(block['block']['files']),
-                                   "is-open": 'y',
+                                   "is-open": self.block_is_open,
                                    "size": size})
 
             return dict(dataset=data)
