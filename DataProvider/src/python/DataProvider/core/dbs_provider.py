@@ -196,7 +196,7 @@ class DBSProvider(BaseProvider):
     def primary_ds_type(self):
         "return primary dataset type"
         if not hasattr(self, '_primary_ds_type'):
-            self._primary_ds_type = 'mc'
+            self._primary_ds_type = generate_uid(1, ['mc', 'data'], self._fixed)
         return self._primary_ds_type
 
     @property
@@ -233,7 +233,7 @@ class DBSProvider(BaseProvider):
     def xtc_cross_section(self):
         "return cross section value"
         if not hasattr(self, '_xtc_cross_section'):
-            self._xtc_cross_section = 123.0
+            self._xtc_cross_section = random.uniform(0.0, 1000.0)
         return self._xtc_cross_section
 
 class DBSDataProvider(DataProvider):
