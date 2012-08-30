@@ -21,35 +21,133 @@ class DBSProvider(BaseProvider):
     def __init__(self):
         super(DBSProvider, self).__init__()
 
+    def block_dump(self, runs_per_file=10, lumis_per_run=10):
+        "return list of block dumps"
+        block_dump_list = []
+        self._runs_per_file = runs_per_file
+        self._lumis_per_run = lumis_per_run
+
+        for block in self._dataset['blocks']:
+            block = block['block']
+            files = []
+            file_conf_list = []
+            for this_file in block['files']:
+                this_file = this_file['file']
+                logical_file_name = this_file['name']
+                cksum = this_file['checksum']
+                files.append({'check_sum': cksum.split(',')[0].split(':')[1],
+                              'file_lumi_list': self._generate_file_lumi_list(logical_file_name),
+                              'adler32': cksum.split(',')[1].split(':')[1],
+                              'event_count': self._generate_event_count(logical_file_name),
+                              'file_type': 'EDM',
+                              'logical_file_name': logical_file_name,
+                              'md5': None,
+                              'auto_cross_section': self._generate_auto_cross_section(logical_file_name)})
+                file_conf_list.append({'release_version': self.release_version,
+                                       'pset_hash': self.pset_hash,
+                                       'lfn': this_file['name'],
+                                       'app_name': self.app_name,
+                                       'output_module_label': self.output_module_label,
+                                       'global_tag': self.global_tag})
+
+            block_dump = {'dataset_conf_list': [{'release_version' : self.release_version,
+                                                 'pset_hash' : self.pset_hash,
+                                                 'app_name' : self.app_name,
+                                                 'output_module_label' : self.output_module_label,
+                                                 'global_tag' : self.global_tag}],
+                          'file_conf_list' : file_conf_list,
+                          'files' : files,
+                          'processing_era' : self.processing_era,
+                          'primds' : self.primds,
+                          'dataset':{'physics_group_name': self.physics_group_name,
+                                     'dataset_access_type': self.dataset_access_type,
+                                     'data_tier_name': self.tier,
+                                     'processed_ds_name': self.processed_dataset,
+                                     'xtcrosssection': self.xtc_cross_section,
+                                     'dataset': self._dataset['name']},
+                          'acquisition_era': self.acquisition_era,
+                          'block': {'open_for_writing': block['is-open'] == 'y',
+                                    'block_name': block['name'],
+                                    'file_count': len(block['files']),
+                                    'origin_site_name': self.origin_site_name,
+                                    'block_size': sum([f['file']['bytes'] for f in block['files']])},
+                          'file_parent_list': []
+                          }
+            block_dump_list.append(block_dump)
+
+        return block_dump_list
+
     def dataset(self):
         "return dataset object"
         doc = {'primary_ds_name': self.primary_dataset_name,
-            'processing_ds_name': self.processed_dataset_name,
-            'data_tier_name': self.tier,
-            'physics_group_name': self.physics_group_name,
-            'acquisition_era_name': self.acquisition_era_name,
-            'processing_version': self.processing_version,
-            'xtcrosssection': self.xtc_cross_section,
-            'output_configs': self.output_config,
-            'primary_ds_type':'mc',
-            'dataset_access_type': self.dataset_access_type,
-            'prep_id':1,
-            'dataset': self.dataset_name}
+               'processing_ds_name': self.processed_dataset_name,
+               'data_tier_name': self.tier,
+               'physics_group_name': self.physics_group_name,
+               'acquisition_era_name': self.acquisition_era_name,
+               'processing_version': self.processing_version,
+               'xtcrosssection': self.xtc_cross_section,
+               'output_configs': self.output_config,
+               'primary_ds_type':'mc',
+               'dataset_access_type': self.dataset_access_type,
+               'prep_id':1,
+               'dataset': self.dataset_name}
         return dict(dataset=doc)
 
-    @property
-    def physics_group_name(self):
-        "return physics group name"
-        if not hasattr(self, "_physics_group_name"):
-            self._physics_group_name = "Tracker"
-        return self._physics_group_name
+    def _generate_event_count(self, logical_file_name):
+        "generate event count for a given file, if not already available"
+        def event_count_generator():
+            return random.randint(10, 10000)
+
+        if not hasattr(self, '_event_count'):
+            self._event_count = {logical_file_name : event_count_generator()}
+        elif not self._event_count.has_key(logical_file_name):
+            self._event_count.update({logical_file_name : event_count_generator()})
+        return self._event_count[logical_file_name]
+
+    def _generate_auto_cross_section(self, logical_file_name):
+        "generate auto cross sectio for a given file, if not already available"
+        def auto_cross_section_generator():
+            return random.uniform(0.0, 100.0)
+
+        if not hasattr(self, '_auto_cross_section'):
+            self._auto_cross_section = {logical_file_name : auto_cross_section_generator()}
+        elif not self._auto_cross_section.has_key(logical_file_name):
+            self._auto_cross_section.update({logical_file_name : auto_cross_section_generator()})
+        return self._auto_cross_section[logical_file_name]
+
+    def _generate_file_lumi_list(self, logical_file_name):
+        "generate file lumi list for a given file, if not already available"
+        def file_lumi_list_generator():
+            output = []
+            for _ in xrange(0, self._runs_per_file):
+                self._run_num += 1
+                for _ in range(0, self._lumis_per_run):
+                    self._lumi_sec += 1
+                    row = dict(run_num=str(self._run_num), lumi_section_num=str(self._lumi_sec))
+                    output.append(row)
+            return output
+
+        if not hasattr(self, '_file_lumi_list'):
+            self._file_lumi_list = {logical_file_name : file_lumi_list_generator()}
+        elif not self._file_lumi_list.has_key(logical_file_name):
+            self._file_lumi_list.update({logical_file_name : file_lumi_list_generator()})
+        return self._file_lumi_list[logical_file_name]
 
     @property
-    def xtc_cross_section(self):
-        "return cross section value"
-        if not hasattr(self, '_xtc_cross_section'):
-            self._xtc_cross_section = 123.0
-        return self._xtc_cross_section
+    def acquisition_era(self):
+        "return acquisition era object"
+        if not hasattr(self, '_acquisition_era'):
+            self._acquisition_era = {"acquisition_era_name": self.acquisition_era_name,
+                                     'start_date': 1234567890,
+                                     "description": "Test_acquisition_era"}
+        return self._acquisition_era
+
+    @property
+    def app_name(self):
+        "return application name"
+        if not hasattr(self, '_app_name'):
+            self._app_name = 'cmsRun'
+        return self._app_name
 
     @property
     def dataset_access_type(self):
@@ -59,19 +157,84 @@ class DBSProvider(BaseProvider):
         return self._dataset_access_type
 
     @property
+    def global_tag(self):
+        "return global tag"
+        if not hasattr(self, '_global_tag'):
+            self._global_tag = 'TAG'
+        return self._global_tag
+
+    @property
+    def origin_site_name(self):
+        "return origin site name"
+        if not hasattr(self, '_origin_site_name'):
+            self._origin_site_name = 'grid-srm.physik.rwth-aachen.de'
+        return self._origin_site_name
+
+    @property
     def output_config(self):
         "Generate DBS output config meta-data"
-        output = []
-        app = 'cmsRun'
-        rel = 'CMSSW_1_2_3'
-        tag = 'TAG'
-        lab = 'Ouput_module_label'
-        phash = generate_uid(32)
         rec  = dict(configs=\
-                dict(release_version=rel, pset_hash=phash, app_name=app,
-                    output_module_label=lab, global_tag=tag))
+                    dict(release_version=self.release_version, pset_hash=self.pset_hash, app_name=self.app_name,
+                         output_module_label=self.output_module_label, global_tag=self.global_tag))
         return rec
 
+    @property
+    def output_module_label(self):
+        "return output module label"
+        if not hasattr(self, '_output_module_label'):
+            self._output_module_label = 'Merged'
+        return self._output_module_label
+
+    @property
+    def physics_group_name(self):
+        "return physics group name"
+        if not hasattr(self, "_physics_group_name"):
+            self._physics_group_name = "Tracker"
+        return self._physics_group_name
+
+    @property
+    def primary_ds_type(self):
+        "return primary dataset type"
+        if not hasattr(self, '_primary_ds_type'):
+            self._primary_ds_type = generate_uid(1, ['mc', 'data'], self._fixed)
+        return self._primary_ds_type
+
+    @property
+    def primds(self):
+        "return primary dataset object"
+        if not hasattr(self, '_primds'):
+            self._primds = {"primary_ds_type": self.primary_ds_type,
+                            "primary_ds_name": self.primary_ds_name}
+        return self._primds
+
+    @property
+    def processing_era(self):
+        "return processing era object"
+        if not hasattr(self, '_processing_era'):
+            self._processing_era = {"processing_version": self.processing_version,
+                                    "description": "Test_proc_era"}
+        return self._processing_era
+
+    @property
+    def pset_hash(self):
+        "return parameter set hash"
+        if not hasattr(self, '_pset_hash'):
+            self._pset_hash = generate_uid(32)
+        return self._pset_hash
+
+    @property
+    def release_version(self):
+        "return release version"
+        if not hasattr(self, '_release_version'):
+            self._release_version = 'CMSSW_1_2_3'
+        return self._release_version
+
+    @property
+    def xtc_cross_section(self):
+        "return cross section value"
+        if not hasattr(self, '_xtc_cross_section'):
+            self._xtc_cross_section = random.uniform(0.0, 1000.0)
+        return self._xtc_cross_section
 
 class DBSDataProvider(DataProvider):
     "DBSDataProvider"

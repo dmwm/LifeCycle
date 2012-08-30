@@ -27,21 +27,16 @@ class PhedexProvider(BaseProvider):
             self.generate_dataset()
 
         data = deepcopy(self._dataset)
-        data.update({'is-open': self.dataset_is_open})
+        data.update({'is-open': self.dataset_is_open,
+                     'dbs_name': self.dbs_name})
 
         for block in data['blocks']:
-            for this_file in block['block']['files']:
-                #update file information
-                this_file['file'].update({"checksum": "cksum:6551,adler32:5040",
-                                          "bytes": 1703432715})
-
             #update block information
             size = sum([f['file']['bytes'] for f in block['block']['files']])
             block['block'].update({"nfiles": len(block['block']['files']),
-                                   "is-open": 'y',
                                    "size": size})
 
-            return dict(dataset=data)
+        return dict(dataset=data)
 
     @property
     def dataset_is_open(self):

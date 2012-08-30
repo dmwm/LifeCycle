@@ -37,7 +37,7 @@ def generate_block_uid():
 class BaseProvider(object):
     "BaseProvider class generates and holds CMS meta-data"
     _shared_information = {}
-    _preserve_information = ('_seed', '_tiers', '_fixed')
+    _preserve_information = ('_seed', '_tiers', '_fixed', '_run_num', '_lumi_sec')
 
     def __new__(cls, *args, **kwds):
         inst = object.__new__(cls, *args, **kwds)
@@ -51,11 +51,19 @@ class BaseProvider(object):
             if key not in cls._preserve_information:
                 del cls._shared_information[key]
 
+        #reset initial starting values for run numbers and lumi sections
+        cls._shared_information['_run_num']  = int('1' + generate_uid(5, '1234567890', cls._shared_information['_fixed']))
+        cls._shared_information['_lumi_sec'] = random.randint(1, 100)
+
     def __init__(self, fixed=False):
         "constructor"
         self._seed  = 'qwertyuiopasdfghjklzxcvbnm'
         self._tiers = ['RAW', 'GEN', 'SIM', 'RECO', 'AOD']
         self._fixed = fixed
+
+        #set starting values for the run number and lumi section to avoid duplicated entries in a block
+        self._run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
+        self._lumi_sec = random.randint(1, 100)
 
     def generate_dataset(self):
         "generate dataset object"
@@ -65,53 +73,71 @@ class BaseProvider(object):
     def add_blocks(self, number_of_blocks):
         "add blocks to existing dataset object"
         for _ in xrange(number_of_blocks):
-            block = {'block': {'files': [], 'name': self.block_name}}
+            block = {'block': {'files': [],
+                               'name': self._generate_block_name(),
+                               'is-open': self._generate_block_is_open()}}
             self._dataset['blocks'].append(block)
 
     def add_files(self, number_of_files):
         "add files to existing block object"
         for block in self._dataset["blocks"]:
             for _ in xrange(number_of_files):
-                filedict = {'file': {'name': self.file_name}}
+                filedict = {'file': {'name': self._generate_file_name(),
+                                     'checksum': "cksum:%s,adler32:%s" % (self._generate_cksum(), self._generate_adler32()),
+                                     'bytes': self._generate_file_size()}}
                 block['block']['files'].append(filedict)
 
-    @property
-    def block_name(self):
-        "return block name"
-        return '/%s/%s/%s#%s' % (self.primary_dataset_name,
+    def _generate_adler32(self):
+        "generates adler32 checksum"
+        return random.randint(1000,9999)
+
+    def _generate_block_name(self):
+        "generates new block name"
+        return '/%s/%s/%s#%s' % (self.primary_ds_name,
                                  self.processed_dataset,
                                  self.tier,
                                  generate_block_uid())
+
+    def _generate_block_is_open(self):
+        "generates block is open status"
+        return 'y'
+
+    def _generate_cksum(self):
+        "generates checksum"
+        return random.randint(1000,9999)
+
+    def _generate_file_name(self):
+        "generates new file name"
+        counter = str(0).zfill(9)
+        return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
+            (self.acquisition_era_name,
+             self.primary_ds_name,
+             self.tier,
+             self.processing_version,
+             counter,
+             generate_uid(5, self._seed, self._fixed))
+
+    def _generate_file_size(self, func='gauss', params=(1000000000,90000000)):
+        "generates new file size"
+        return int(abs(getattr(random,func)(*params)))
 
     @property
     def dataset_name(self):
         "return dataset name"
         if not hasattr(self, "_dataset_name"):
             self._dataset_name = '/%s/%s/%s' % \
-                    (self.primary_dataset_name,
+                    (self.primary_ds_name,
                      self.processed_dataset,
                      self.tier)
         return self._dataset_name
 
     @property
-    def file_name(self):
-        "return file name"
-        counter = str(0).zfill(9)
-        return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
-            (self.acquisition_era_name,
-             self.primary_dataset_name,
-             self.tier,
-             self.processing_version,
-             counter,
-             generate_uid(5, self._seed, self._fixed))
-
-    @property
-    def primary_dataset_name(self):
+    def primary_ds_name(self):
         "return primary dataset name"
-        if not hasattr(self, '_primary_dataset_name'):
-            self._primary_dataset_name = \
+        if not hasattr(self, '_primary_ds_name'):
+            self._primary_ds_name = \
                 generate_uid(3, self._seed, self._fixed)
-        return self._primary_dataset_name
+        return self._primary_ds_name
 
     @property
     def processed_dataset(self):
@@ -127,7 +153,8 @@ class BaseProvider(object):
     def acquisition_era_name(self):
         "return acquisition era name"
         if not hasattr(self, '_acquisition_era_name'):
-            self._acquisition_era_name = 'pms'
+            self._acquisition_era_name = \
+                generate_uid(3, self._seed, self._fixed)
         return self._acquisition_era_name
 
     @property
@@ -142,7 +169,7 @@ class BaseProvider(object):
     def processing_version(self):
         "return processing version"
         if not hasattr(self, '_processing_version'):
-            self._processing_version = '63'
+            self._processing_version = random.randint(1, 100)
         return self._processing_version
 
     @property
