@@ -23,6 +23,8 @@ class DBSProvider(BaseProvider):
 
     def block_dump(self, runs_per_file=10, lumis_per_run=10):
         block_dump_list = []
+        self._runs_per_file = runs_per_file
+        self._lumis_per_run = lumis_per_run
 
         for block in self._dataset['blocks']:
             block = block['block']
@@ -30,15 +32,16 @@ class DBSProvider(BaseProvider):
             file_conf_list = []
             for this_file in block['files']:
                 this_file = this_file['file']
+                logical_file_name = this_file['name']
                 cksum = this_file['checksum']
                 files.append({'check_sum': cksum.split(',')[0].split(':')[1],
-                              'file_lumi_list': self._generate_file_lumi_list(runs_per_file, lumis_per_run),
+                              'file_lumi_list': self._generate_file_lumi_list(logical_file_name),
                               'adler32': cksum.split(',')[1].split(':')[1],
-                              'event_count': self._generate_event_count(),
+                              'event_count': self._generate_event_count(logical_file_name),
                               'file_type': 'EDM',
-                              'logical_file_name': this_file['name'],
+                              'logical_file_name': logical_file_name,
                               'md5': None,
-                              'auto_cross_section': self._generate_auto_cross_section()})
+                              'auto_cross_section': self._generate_auto_cross_section(logical_file_name)})
                 file_conf_list.append({'release_version': self.release_version,
                                        'pset_hash': self.pset_hash,
                                        'lfn': this_file['name'],
@@ -89,22 +92,43 @@ class DBSProvider(BaseProvider):
                'dataset': self.dataset_name}
         return dict(dataset=doc)
 
-    def _generate_event_count(self):
-        return random.randint(10, 10000)
+    def _generate_event_count(self, logical_file_name):
+        def event_count_generator():
+            return random.randint(10, 10000)
 
-    def _generate_auto_cross_section(self):
-        return random.uniform(0.0, 100.0)
+        if not hasattr(self, '_event_count'):
+            self._event_count = {logical_file_name : event_count_generator()}
+        elif not self._event_count.has_key(logical_file_name):
+            self._event_count.update({logical_file_name : event_count_generator()})
+        return self._event_count[logical_file_name]
 
-    def _generate_file_lumi_list(self, runs_per_file, lumis_per_run):
+    def _generate_auto_cross_section(self, logical_file_name):
+        def auto_cross_section_generator():
+            return random.uniform(0.0, 100.0)
+
+        if not hasattr(self, '_auto_cross_section'):
+            self._auto_cross_section = {logical_file_name : auto_cross_section_generator()}
+        elif not self._auto_cross_section.has_key(logical_file_name):
+            self._auto_cross_section.update({logical_file_name : auto_cross_section_generator()})
+        return self._auto_cross_section[logical_file_name]
+
+    def _generate_file_lumi_list(self, logical_file_name):
         "Generate file lumi list"
-        output = []
-        for _ in xrange(0, runs_per_file):
-            self._run_num += 1
-            for _ in range(0, lumis_per_run):
-                self._lumi_sec += 1
-                row = dict(run_num=str(self._run_num), lumi_section_num=str(self._lumi_sec))
-                output.append(row)
-        return output
+        def file_lumi_list_generator():
+            output = []
+            for _ in xrange(0, self._runs_per_file):
+                self._run_num += 1
+                for _ in range(0, self._lumis_per_run):
+                    self._lumi_sec += 1
+                    row = dict(run_num=str(self._run_num), lumi_section_num=str(self._lumi_sec))
+                    output.append(row)
+            return output
+
+        if not hasattr(self, '_file_lumi_list'):
+            self._file_lumi_list = {logical_file_name : file_lumi_list_generator()}
+        elif not self._file_lumi_list.has_key(logical_file_name):
+            self._file_lumi_list.update({logical_file_name : file_lumi_list_generator()})
+        return self._file_lumi_list[logical_file_name]
 
     @property
     def acquisition_era(self):
