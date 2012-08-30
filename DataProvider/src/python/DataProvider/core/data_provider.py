@@ -88,6 +88,7 @@ class BaseProvider(object):
                 block['block']['files'].append(filedict)
 
     def _generate_adler32(self):
+        "generates adler32 checksum"
         return random.randint(1000,9999)
 
     def _generate_block_name(self):
@@ -98,9 +99,11 @@ class BaseProvider(object):
                                  generate_block_uid())
 
     def _generate_block_is_open(self):
+        "generates block is open status"
         return 'y'
 
     def _generate_cksum(self):
+        "generates checksum"
         return random.randint(1000,9999)
 
     def _generate_file_name(self):

@@ -22,6 +22,7 @@ class DBSProvider(BaseProvider):
         super(DBSProvider, self).__init__()
 
     def block_dump(self, runs_per_file=10, lumis_per_run=10):
+        "return list of block dumps"
         block_dump_list = []
         self._runs_per_file = runs_per_file
         self._lumis_per_run = lumis_per_run
@@ -93,6 +94,7 @@ class DBSProvider(BaseProvider):
         return dict(dataset=doc)
 
     def _generate_event_count(self, logical_file_name):
+        "generate event count for a given file, if not already available"
         def event_count_generator():
             return random.randint(10, 10000)
 
@@ -103,6 +105,7 @@ class DBSProvider(BaseProvider):
         return self._event_count[logical_file_name]
 
     def _generate_auto_cross_section(self, logical_file_name):
+        "generate auto cross sectio for a given file, if not already available"
         def auto_cross_section_generator():
             return random.uniform(0.0, 100.0)
 
@@ -113,7 +116,7 @@ class DBSProvider(BaseProvider):
         return self._auto_cross_section[logical_file_name]
 
     def _generate_file_lumi_list(self, logical_file_name):
-        "Generate file lumi list"
+        "generate file lumi list for a given file, if not already available"
         def file_lumi_list_generator():
             output = []
             for _ in xrange(0, self._runs_per_file):
@@ -132,6 +135,7 @@ class DBSProvider(BaseProvider):
 
     @property
     def acquisition_era(self):
+        "return acquisition era object"
         if not hasattr(self, '_acquisition_era'):
             self._acquisition_era = {"acquisition_era_name": self.acquisition_era_name,
                                      'start_date': 1234567890,
@@ -140,6 +144,7 @@ class DBSProvider(BaseProvider):
 
     @property
     def app_name(self):
+        "return application name"
         if not hasattr(self, '_app_name'):
             self._app_name = 'cmsRun'
         return self._app_name
@@ -153,12 +158,14 @@ class DBSProvider(BaseProvider):
 
     @property
     def global_tag(self):
+        "return global tag"
         if not hasattr(self, '_global_tag'):
             self._global_tag = 'TAG'
         return self._global_tag
 
     @property
     def origin_site_name(self):
+        "return origin site name"
         if not hasattr(self, '_origin_site_name'):
             self._origin_site_name = 'grid-srm.physik.rwth-aachen.de'
         return self._origin_site_name
@@ -173,6 +180,7 @@ class DBSProvider(BaseProvider):
 
     @property
     def output_module_label(self):
+        "return output module label"
         if not hasattr(self, '_output_module_label'):
             self._output_module_label = 'Merged'
         return self._output_module_label
@@ -186,12 +194,14 @@ class DBSProvider(BaseProvider):
 
     @property
     def primary_ds_type(self):
+        "return primary dataset type"
         if not hasattr(self, '_primary_ds_type'):
             self._primary_ds_type = 'mc'
         return self._primary_ds_type
 
     @property
     def primds(self):
+        "return primary dataset object"
         if not hasattr(self, '_primds'):
             self._primds = {"primary_ds_type": self.primary_ds_type,
                             "primary_ds_name": self.primary_ds_name}
@@ -199,6 +209,7 @@ class DBSProvider(BaseProvider):
 
     @property
     def processing_era(self):
+        "return processing era object"
         if not hasattr(self, '_processing_era'):
             self._processing_era = {"processing_version": self.processing_version,
                                     "description": "Test_proc_era"}
@@ -206,12 +217,14 @@ class DBSProvider(BaseProvider):
 
     @property
     def pset_hash(self):
+        "return parameter set hash"
         if not hasattr(self, '_pset_hash'):
             self._pset_hash = generate_uid(32)
         return self._pset_hash
 
     @property
     def release_version(self):
+        "return release version"
         if not hasattr(self, '_release_version'):
             self._release_version = 'CMSSW_1_2_3'
         return self._release_version
