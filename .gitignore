@@ -1,5 +1,9 @@
 *.py[co]
 
+# Back-up files
+.*~
+*~
+
 # Packages
 *.egg
 *.egg-info
