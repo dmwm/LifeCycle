@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# find out where DataProvider is installed on a system
+root=`python -c "import DataProvider; print '/'.join(DataProvider.__file__.split('/')[:-1])"`
+# run actual script
+if  [ -z $1 ]; then
+    echo "Usage: payload_provider --in=input_payload.json --out=output_payload.json"
+else
+    python $root/tools/payload_provider.py ${1+"$@"}
+fi
