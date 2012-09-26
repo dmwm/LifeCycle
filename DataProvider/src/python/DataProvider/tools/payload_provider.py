@@ -57,14 +57,21 @@ def workflow(fin, fout, verbose=None):
     number_of_runs = payload['workflow']['NumberOfRuns']
     number_of_lumis = payload['workflow']['NumberOfLumis']
 
+    payload['workflow']['Phedex'] = []
+    payload['workflow']['DBS'] = []
+
     phedex_provider = PhedexProvider()
     dbs_provider = DBSProvider()
-    phedex_provider.generate_dataset()
-    phedex_provider.add_blocks(number_of_blocks)
-    phedex_provider.add_files(number_of_files)
-    payload['workflow']['Phedex'] = phedex_provider.dataset()
-    payload['workflow']['DBS'] = \
-            dbs_provider.block_dump(number_of_runs, number_of_lumis)
+
+    for _ in xrange(number_of_datasets):
+        phedex_provider.generate_dataset()
+        phedex_provider.add_blocks(number_of_blocks)
+        phedex_provider.add_files(number_of_files)
+        payload['workflow']['Phedex'].append(
+            phedex_provider.dataset())
+        payload['workflow']['DBS'].extend(
+            dbs_provider.block_dump(number_of_runs, number_of_lumis))
+        phedex_provider.reset()
 
     with open(fout, 'w') as output:
         json.dump(payload, output)
