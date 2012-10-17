@@ -17,6 +17,7 @@ from optparse import OptionParser
 # data provider modules
 from DataProvider.core.dbs_provider import DBSProvider
 from DataProvider.core.phedex_provider import PhedexProvider
+from DataProvider.utils.utils import deepcopy
 
 if sys.version_info < (2, 6):
     raise Exception("To run this tool please use python 2.6")
@@ -41,44 +42,44 @@ class GeneratorOptionParser:
 def workflow(fin, fout, verbose=None):
     "LifeCycle workflow"
 
-    payload = None # initial payload, should be provided by LyfeCycle
+    initial_payload = None # initial payload, should be provided by LifeCycle
+    new_payload = [] # newly created payloads will be returned by LifeCycle
 
     with open(fin, 'r') as source:
-        payload =  json.load(source)
+        initial_payload =  json.load(source)
 
     if  verbose:
         print "\n### input workflow"
-        print pprint.pformat(payload)
+        print pprint.pformat(initial_payload)
 
     ### read inputs from payload
-    number_of_datasets = payload['workflow']['NumberOfDatasets']
-    number_of_blocks = payload['workflow']['NumberOfBlocks']
-    number_of_files = payload['workflow']['NumberOfFiles']
-    number_of_runs = payload['workflow']['NumberOfRuns']
-    number_of_lumis = payload['workflow']['NumberOfLumis']
-
-    payload['workflow']['Phedex'] = []
-    payload['workflow']['DBS'] = []
+    number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
+    number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
+    number_of_files = initial_payload['workflow']['NumberOfFiles']
+    number_of_runs = initial_payload['workflow']['NumberOfRuns']
+    number_of_lumis = initial_payload['workflow']['NumberOfLumis']
 
     phedex_provider = PhedexProvider()
     dbs_provider = DBSProvider()
 
     for _ in xrange(number_of_datasets):
+        #clone initial payload
+        payload = deepcopy(initial_payload)
         phedex_provider.generate_dataset()
         phedex_provider.add_blocks(number_of_blocks)
         phedex_provider.add_files(number_of_files)
-        payload['workflow']['Phedex'].append(
-            phedex_provider.dataset())
-        payload['workflow']['DBS'].extend(
-            dbs_provider.block_dump(number_of_runs, number_of_lumis))
+        payload['workflow']['Phedex'] = phedex_provider.dataset()
+        payload['workflow']['DBS'] = dbs_provider.block_dump(number_of_runs,
+                                                             number_of_lumis)
         phedex_provider.reset()
+        new_payload.append(payload)
 
     with open(fout, 'w') as output:
-        json.dump(payload, output)
+        json.dump(new_payload, output)
 
     if  verbose:
         print "\n### output workflow"
-        print pprint.pformat(payload)
+        print pprint.pformat(new_payload)
 
 def main():
     "Main function"
