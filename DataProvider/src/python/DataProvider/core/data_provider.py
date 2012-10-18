@@ -136,7 +136,7 @@ class BaseProvider(object):
         "return primary dataset name"
         if not hasattr(self, '_primary_ds_name'):
             self._primary_ds_name = \
-                generate_uid(3, self._seed, self._fixed)
+                generate_uid(5, self._seed, self._fixed)
         return self._primary_ds_name
 
     @property
@@ -154,7 +154,7 @@ class BaseProvider(object):
         "return acquisition era name"
         if not hasattr(self, '_acquisition_era_name'):
             self._acquisition_era_name = \
-                generate_uid(3, self._seed, self._fixed)
+                generate_uid(5, self._seed, self._fixed)
         return self._acquisition_era_name
 
     @property
@@ -162,7 +162,7 @@ class BaseProvider(object):
         "return processed dataset name"
         if not hasattr(self, '_processed_dataset_name'):
             self._processed_dataset_name = \
-                generate_uid(3, self._seed, self._fixed)
+                generate_uid(5, self._seed, self._fixed)
         return self._processed_dataset_name
 
     @property
@@ -191,10 +191,10 @@ class DataProvider(object):
         "Generate datasets"
         output = []
         for _ in range(0, number):
-            prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
+            prim = attrs.get('prim', generate_uid(5, self._seed, self._fixed))
             proc = attrs.get('proc', "%s-%s-v%i" % \
-                    (generate_uid(3, self._seed, self._fixed),
-                        generate_uid(3, self._seed, self._fixed),
+                    (generate_uid(5, self._seed, self._fixed),
+                        generate_uid(5, self._seed, self._fixed),
                         random.randint(1, 100)))
             tier = attrs.get('tier', generate_uid(1, self._tiers, self._fixed))
             name = '/%s/%s/%s' % (prim, proc, tier)
@@ -210,8 +210,8 @@ class DataProvider(object):
         "Generate blocks"
         output = []
         for _ in range(0, number):
-            prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
-            proc = attrs.get('proc', generate_uid(3, self._seed, self._fixed))
+            prim = attrs.get('prim', generate_uid(5, self._seed, self._fixed))
+            proc = attrs.get('proc', generate_uid(5, self._seed, self._fixed))
             tier = attrs.get('tier', generate_uid(1, self._tiers, self._fixed))
             name = '/%s/%s/%s' % (prim, proc, tier)
             uid  = generate_block_uid()
