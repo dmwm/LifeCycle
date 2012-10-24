@@ -18,8 +18,9 @@ from DataProvider.utils.utils import deepcopy
 
 class PhedexProvider(BaseProvider):
     "Phedex data provider class with persistent storage"
-    def __init__(self, failure_rates=None):
+    def __init__(self, dbs_name='global', failure_rates=None):
         super(PhedexProvider, self).__init__(failure_rates=failure_rates)
+        self._dbs_name = dbs_name
 
     def dataset(self):
         "return dataset object"
@@ -49,8 +50,6 @@ class PhedexProvider(BaseProvider):
     @property
     def dbs_name(self):
         "return dbs name"
-        if not hasattr(self, "_dbs_name"):
-            self._dbs_name = 'global'
         return self._dbs_name
 
 class PhedexDataProvider(DataProvider):

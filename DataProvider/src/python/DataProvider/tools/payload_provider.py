@@ -53,6 +53,7 @@ def workflow(fin, fout, verbose=None):
         print pprint.pformat(initial_payload)
 
     ### read inputs from payload
+    phedex_dbs_name = initial_payload['workflow']['PhedexDBSName']
     number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
     number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
     number_of_files = initial_payload['workflow']['NumberOfFiles']
@@ -70,7 +71,7 @@ def workflow(fin, fout, verbose=None):
     except KeyError:
         failure_rates = None
 
-    phedex_provider = PhedexProvider(failure_rates=failure_rates)
+    phedex_provider = PhedexProvider(dbs_name=phedex_dbs_name, failure_rates=failure_rates)
     dbs_provider = DBSProvider(failure_rates=failure_rates)
 
     for _ in xrange(number_of_datasets):
