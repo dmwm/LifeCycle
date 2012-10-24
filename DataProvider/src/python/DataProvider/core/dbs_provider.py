@@ -18,8 +18,8 @@ from DataProvider.utils.utils import deepcopy
 
 class DBSProvider(BaseProvider):
     "DBS data provider class with persistent storage"
-    def __init__(self):
-        super(DBSProvider, self).__init__()
+    def __init__(self, failure_rates=None):
+        super(DBSProvider, self).__init__(failure_rates=failure_rates)
 
     def block_dump(self, runs_per_file=10, lumis_per_run=10):
         "return list of block dumps"

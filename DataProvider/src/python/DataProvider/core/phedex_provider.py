@@ -18,8 +18,8 @@ from DataProvider.utils.utils import deepcopy
 
 class PhedexProvider(BaseProvider):
     "Phedex data provider class with persistent storage"
-    def __init__(self):
-        super(PhedexProvider, self).__init__()
+    def __init__(self, failure_rates=None):
+        super(PhedexProvider, self).__init__(failure_rates=failure_rates)
 
     def dataset(self):
         "return dataset object"

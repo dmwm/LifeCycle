@@ -59,8 +59,19 @@ def workflow(fin, fout, verbose=None):
     number_of_runs = initial_payload['workflow']['NumberOfRuns']
     number_of_lumis = initial_payload['workflow']['NumberOfLumis']
 
-    phedex_provider = PhedexProvider()
-    dbs_provider = DBSProvider()
+    ###read error rate from payload
+    try:
+        failure_rates = dict(phedex_skip_file_fail = initial_payload['workflow']['PhedexSkipFileFail'])
+        failure_rates.update(dict(phedex_change_cksum_fail = initial_payload['workflow']['PhedexChangeCksumFail']))
+        failure_rates.update(dict(phedex_change_size_fail = initial_payload['workflow']['PhedexChangeSizeFail']))
+        failure_rates.update(dict(dbs_skip_file_fail = initial_payload['workflow']['DBSSkipFileFail']))
+        failure_rates.update(dict(dbs_change_cksum_fail = initial_payload['workflow']['DBSChangeCksumFail']))
+        failure_rates.update(dict(dbs_change_size_fail = initial_payload['workflow']['PhedexChangeSizeFail']))
+    except KeyError:
+        failure_rates = None
+
+    phedex_provider = PhedexProvider(failure_rates=failure_rates)
+    dbs_provider = DBSProvider(failure_rates=failure_rates)
 
     for _ in xrange(number_of_datasets):
         #clone initial payload
