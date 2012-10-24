@@ -36,6 +36,7 @@ class DBSProvider(BaseProvider):
                 logical_file_name = this_file['name']
                 cksum = this_file['checksum']
                 files.append({'check_sum': cksum.split(',')[0].split(':')[1],
+                              'file_size': this_file['bytes'],
                               'file_lumi_list': self._generate_file_lumi_list(logical_file_name),
                               'adler32': cksum.split(',')[1].split(':')[1],
                               'event_count': self._generate_event_count(logical_file_name),
