@@ -61,12 +61,12 @@ def workflow(fin, fout, verbose=None):
 
     ###read error rate from payload
     try:
-        failure_rates = dict(phedex_skip_file_fail = initial_payload['workflow']['PhedexSkipFileFail'])
-        failure_rates.update(dict(phedex_change_cksum_fail = initial_payload['workflow']['PhedexChangeCksumFail']))
-        failure_rates.update(dict(phedex_change_size_fail = initial_payload['workflow']['PhedexChangeSizeFail']))
-        failure_rates.update(dict(dbs_skip_file_fail = initial_payload['workflow']['DBSSkipFileFail']))
-        failure_rates.update(dict(dbs_change_cksum_fail = initial_payload['workflow']['DBSChangeCksumFail']))
-        failure_rates.update(dict(dbs_change_size_fail = initial_payload['workflow']['PhedexChangeSizeFail']))
+        failure_rates = dict(PhedexSkipFileFail = initial_payload['workflow']['PhedexSkipFileFail'])
+        failure_rates.update(dict(PhedexChangeCksumFail = initial_payload['workflow']['PhedexChangeCksumFail']))
+        failure_rates.update(dict(PhedexChangeSizeFail = initial_payload['workflow']['PhedexChangeSizeFail']))
+        failure_rates.update(dict(DBSSkipFileFail = initial_payload['workflow']['DBSSkipFileFail']))
+        failure_rates.update(dict(DBSChangeCksumFail = initial_payload['workflow']['DBSChangeCksumFail']))
+        failure_rates.update(dict(DBSChangeSizeFail = initial_payload['workflow']['PhedexChangeSizeFail']))
     except KeyError:
         failure_rates = None
 

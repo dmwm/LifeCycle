@@ -110,10 +110,13 @@ class BaseProvider(object):
 
     def _generate_failures(self):
         "generates failures according the failure rate provided in the constructor"
+        if not self._failure_rates:
+            return ""
+        failure_list = []
         for key, value in self._failure_rates.iteritems():
             if random.random() < value:
-                return "_%s" % (key)
-        return ""
+                failure_list.append(key)
+        return "_%s" % ("_".join(failure_list))
 
     def _generate_file_name(self):
         "generates new file name"
