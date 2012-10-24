@@ -79,7 +79,7 @@ def workflow(fin, fout, verbose=None):
         phedex_provider.generate_dataset()
         phedex_provider.add_blocks(number_of_blocks)
         phedex_provider.add_files(number_of_files)
-        payload['workflow']['Phedex'] = phedex_provider.dataset()
+        payload['workflow']['Phedex'] = [phedex_provider.dataset()]
         payload['workflow']['DBS'] = dbs_provider.block_dump(number_of_runs,
                                                              number_of_lumis)
         phedex_provider.reset()

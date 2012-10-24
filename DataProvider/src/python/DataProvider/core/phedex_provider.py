@@ -26,17 +26,18 @@ class PhedexProvider(BaseProvider):
         if not hasattr(self, '_dataset'):
             self.generate_dataset()
 
-        data = deepcopy(self._dataset)
-        data.update({'is-open': self.dataset_is_open,
-                     'dbs_name': self.dbs_name})
+        phedex_data = {'dbs_name': self.dbs_name}
+        dataset = deepcopy(self._dataset)
+        dataset.update({'is-open': self.dataset_is_open})
 
-        for block in data['blocks']:
+        for block in dataset['blocks']:
             #update block information
             size = sum([f['file']['bytes'] for f in block['block']['files']])
             block['block'].update({"nfiles": len(block['block']['files']),
                                    "size": size})
 
-        return dict(dataset=data)
+        phedex_data.update(dict(dataset=dataset))
+        return phedex_data
 
     @property
     def dataset_is_open(self):
