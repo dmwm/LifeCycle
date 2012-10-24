@@ -41,7 +41,7 @@ class BaseProvider(object):
                              '_run_num', '_lumi_sec', '_failure_rates')
 
     def __new__(cls, *args, **kwds):
-        inst = object.__new__(cls, *args, **kwds)
+        inst = object.__new__(cls)
         inst.__dict__ = cls._shared_information
         return inst
 
