@@ -62,12 +62,13 @@ def workflow(fin, fout, verbose=None):
 
     ###read error rate from payload
     try:
-        failure_rates = dict(PhedexSkipFileFail = initial_payload['workflow']['PhedexSkipFileFail'])
-        failure_rates.update(dict(PhedexChangeCksumFail = initial_payload['workflow']['PhedexChangeCksumFail']))
-        failure_rates.update(dict(PhedexChangeSizeFail = initial_payload['workflow']['PhedexChangeSizeFail']))
-        failure_rates.update(dict(DBSSkipFileFail = initial_payload['workflow']['DBSSkipFileFail']))
-        failure_rates.update(dict(DBSChangeCksumFail = initial_payload['workflow']['DBSChangeCksumFail']))
-        failure_rates.update(dict(DBSChangeSizeFail = initial_payload['workflow']['DBSChangeSizeFail']))
+        ### cast to float necessary because perl input is interpreted as a string
+        failure_rates = dict(PhedexSkipFileFail = float(initial_payload['workflow']['PhedexSkipFileFail']))
+        failure_rates.update(dict(PhedexChangeCksumFail = float(initial_payload['workflow']['PhedexChangeCksumFail'])))
+        failure_rates.update(dict(PhedexChangeSizeFail = float(initial_payload['workflow']['PhedexChangeSizeFail'])))
+        failure_rates.update(dict(DBSSkipFileFail = float(initial_payload['workflow']['DBSSkipFileFail'])))
+        failure_rates.update(dict(DBSChangeCksumFail = float(initial_payload['workflow']['DBSChangeCksumFail'])))
+        failure_rates.update(dict(DBSChangeSizeFail = float(initial_payload['workflow']['DBSChangeSizeFail'])))
     except KeyError:
         failure_rates = None
 
