@@ -18,25 +18,27 @@ from DataProvider.utils.utils import deepcopy
 
 class PhedexProvider(BaseProvider):
     "Phedex data provider class with persistent storage"
-    def __init__(self):
-        super(PhedexProvider, self).__init__()
+    def __init__(self, dbs_name='global', failure_rates=None):
+        super(PhedexProvider, self).__init__(failure_rates=failure_rates)
+        self._dbs_name = dbs_name
 
     def dataset(self):
         "return dataset object"
         if not hasattr(self, '_dataset'):
             self.generate_dataset()
 
-        data = deepcopy(self._dataset)
-        data.update({'is-open': self.dataset_is_open,
-                     'dbs_name': self.dbs_name})
+        phedex_data = {'dbs_name': self.dbs_name}
+        dataset = deepcopy(self._dataset)
+        dataset.update({'is-open': self.dataset_is_open})
 
-        for block in data['blocks']:
+        for block in dataset['blocks']:
             #update block information
             size = sum([f['file']['bytes'] for f in block['block']['files']])
             block['block'].update({"nfiles": len(block['block']['files']),
                                    "size": size})
 
-        return dict(dataset=data)
+        phedex_data.update(dict(dataset=dataset))
+        return phedex_data
 
     @property
     def dataset_is_open(self):
@@ -48,8 +50,6 @@ class PhedexProvider(BaseProvider):
     @property
     def dbs_name(self):
         "return dbs name"
-        if not hasattr(self, "_dbs_name"):
-            self._dbs_name = 'global'
         return self._dbs_name
 
 class PhedexDataProvider(DataProvider):

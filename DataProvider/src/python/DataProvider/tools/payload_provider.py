@@ -10,7 +10,7 @@ Description: Payload provider is a tool to generate LifeCycle workflows
 # system modules
 import os
 import sys
-import json
+import cjson
 import pprint
 from optparse import OptionParser
 
@@ -46,21 +46,34 @@ def workflow(fin, fout, verbose=None):
     new_payload = [] # newly created payloads will be returned by LifeCycle
 
     with open(fin, 'r') as source:
-        initial_payload =  json.load(source)
+        initial_payload = cjson.decode(source.read())
 
     if  verbose:
         print "\n### input workflow"
         print pprint.pformat(initial_payload)
 
     ### read inputs from payload
+    phedex_dbs_name = initial_payload['workflow']['PhedexDBSName']
     number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
     number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
     number_of_files = initial_payload['workflow']['NumberOfFiles']
     number_of_runs = initial_payload['workflow']['NumberOfRuns']
     number_of_lumis = initial_payload['workflow']['NumberOfLumis']
 
-    phedex_provider = PhedexProvider()
-    dbs_provider = DBSProvider()
+    ###read error rate from payload
+    try:
+        ### cast to float necessary because perl input is interpreted as a string
+        failure_rates = dict(PhedexSkipFileFail = float(initial_payload['workflow']['PhedexSkipFileFail']))
+        failure_rates.update(dict(PhedexChangeCksumFail = float(initial_payload['workflow']['PhedexChangeCksumFail'])))
+        failure_rates.update(dict(PhedexChangeSizeFail = float(initial_payload['workflow']['PhedexChangeSizeFail'])))
+        failure_rates.update(dict(DBSSkipFileFail = float(initial_payload['workflow']['DBSSkipFileFail'])))
+        failure_rates.update(dict(DBSChangeCksumFail = float(initial_payload['workflow']['DBSChangeCksumFail'])))
+        failure_rates.update(dict(DBSChangeSizeFail = float(initial_payload['workflow']['DBSChangeSizeFail'])))
+    except KeyError:
+        failure_rates = None
+
+    phedex_provider = PhedexProvider(dbs_name=phedex_dbs_name, failure_rates=failure_rates)
+    dbs_provider = DBSProvider(failure_rates=failure_rates)
 
     for _ in xrange(number_of_datasets):
         #clone initial payload
@@ -68,14 +81,14 @@ def workflow(fin, fout, verbose=None):
         phedex_provider.generate_dataset()
         phedex_provider.add_blocks(number_of_blocks)
         phedex_provider.add_files(number_of_files)
-        payload['workflow']['Phedex'] = phedex_provider.dataset()
+        payload['workflow']['Phedex'] = [phedex_provider.dataset()]
         payload['workflow']['DBS'] = dbs_provider.block_dump(number_of_runs,
                                                              number_of_lumis)
         phedex_provider.reset()
         new_payload.append(payload)
 
     with open(fout, 'w') as output:
-        json.dump(new_payload, output)
+        output.write(cjson.encode(new_payload))
 
     if  verbose:
         print "\n### output workflow"

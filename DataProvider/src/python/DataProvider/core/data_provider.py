@@ -37,10 +37,11 @@ def generate_block_uid():
 class BaseProvider(object):
     "BaseProvider class generates and holds CMS meta-data"
     _shared_information = {}
-    _preserve_information = ('_seed', '_tiers', '_fixed', '_run_num', '_lumi_sec')
+    _preserve_information = ('_seed', '_tiers', '_fixed',
+                             '_run_num', '_lumi_sec', '_failure_rates')
 
     def __new__(cls, *args, **kwds):
-        inst = object.__new__(cls, *args, **kwds)
+        inst = object.__new__(cls)
         inst.__dict__ = cls._shared_information
         return inst
 
@@ -55,11 +56,12 @@ class BaseProvider(object):
         cls._shared_information['_run_num']  = int('1' + generate_uid(5, '1234567890', cls._shared_information['_fixed']))
         cls._shared_information['_lumi_sec'] = random.randint(1, 100)
 
-    def __init__(self, fixed=False):
+    def __init__(self, fixed=False, failure_rates=None):
         "constructor"
         self._seed  = 'qwertyuiopasdfghjklzxcvbnm'
         self._tiers = ['RAW', 'GEN', 'SIM', 'RECO', 'AOD']
         self._fixed = fixed
+        self._failure_rates = failure_rates or {}
 
         #set starting values for the run number and lumi section to avoid duplicated entries in a block
         self._run_num  = int('1' + generate_uid(5, '1234567890', self._fixed))
@@ -106,16 +108,25 @@ class BaseProvider(object):
         "generates checksum"
         return random.randint(1000,9999)
 
+    def _generate_failures(self):
+        "generates failures according the failure rate provided in the constructor"
+        failure_list = []
+        for key, value in self._failure_rates.iteritems():
+            if random.random() < value:
+                failure_list.append(key)
+        return "_%s" % ("_".join(failure_list)) if failure_list else ""
+
     def _generate_file_name(self):
         "generates new file name"
         counter = str(0).zfill(9)
-        return '/store/data/%s/%s/%s/%s/%s/%s.root' % \
+        return '/store/data/%s/%s/%s/%s/%s/%s%s.root' % \
             (self.acquisition_era_name,
              self.primary_ds_name,
              self.tier,
              self.processing_version,
              counter,
-             generate_uid(5, self._seed, self._fixed))
+             generate_uid(5, self._seed, self._fixed),
+             self._generate_failures())
 
     def _generate_file_size(self, func='gauss', params=(1000000000,90000000)):
         "generates new file size"
@@ -136,7 +147,7 @@ class BaseProvider(object):
         "return primary dataset name"
         if not hasattr(self, '_primary_ds_name'):
             self._primary_ds_name = \
-                generate_uid(3, self._seed, self._fixed)
+                generate_uid(5, self._seed, self._fixed)
         return self._primary_ds_name
 
     @property
@@ -154,7 +165,7 @@ class BaseProvider(object):
         "return acquisition era name"
         if not hasattr(self, '_acquisition_era_name'):
             self._acquisition_era_name = \
-                generate_uid(3, self._seed, self._fixed)
+                generate_uid(5, self._seed, self._fixed)
         return self._acquisition_era_name
 
     @property
@@ -162,7 +173,7 @@ class BaseProvider(object):
         "return processed dataset name"
         if not hasattr(self, '_processed_dataset_name'):
             self._processed_dataset_name = \
-                generate_uid(3, self._seed, self._fixed)
+                generate_uid(5, self._seed, self._fixed)
         return self._processed_dataset_name
 
     @property
@@ -191,10 +202,10 @@ class DataProvider(object):
         "Generate datasets"
         output = []
         for _ in range(0, number):
-            prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
+            prim = attrs.get('prim', generate_uid(5, self._seed, self._fixed))
             proc = attrs.get('proc', "%s-%s-v%i" % \
-                    (generate_uid(3, self._seed, self._fixed),
-                        generate_uid(3, self._seed, self._fixed),
+                    (generate_uid(5, self._seed, self._fixed),
+                        generate_uid(5, self._seed, self._fixed),
                         random.randint(1, 100)))
             tier = attrs.get('tier', generate_uid(1, self._tiers, self._fixed))
             name = '/%s/%s/%s' % (prim, proc, tier)
@@ -210,8 +221,8 @@ class DataProvider(object):
         "Generate blocks"
         output = []
         for _ in range(0, number):
-            prim = attrs.get('prim', generate_uid(3, self._seed, self._fixed))
-            proc = attrs.get('proc', generate_uid(3, self._seed, self._fixed))
+            prim = attrs.get('prim', generate_uid(5, self._seed, self._fixed))
+            proc = attrs.get('proc', generate_uid(5, self._seed, self._fixed))
             tier = attrs.get('tier', generate_uid(1, self._tiers, self._fixed))
             name = '/%s/%s/%s' % (prim, proc, tier)
             uid  = generate_block_uid()
