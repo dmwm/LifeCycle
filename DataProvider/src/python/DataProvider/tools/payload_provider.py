@@ -10,7 +10,6 @@ Description: Payload provider is a tool to generate LifeCycle workflows
 # system modules
 import os
 import sys
-import cjson
 import pprint
 from optparse import OptionParser
 
@@ -18,6 +17,7 @@ from optparse import OptionParser
 from DataProvider.core.dbs_provider import DBSProvider
 from DataProvider.core.phedex_provider import PhedexProvider
 from DataProvider.utils.utils import deepcopy
+import DAS.utils.jsonwrapper as json
 
 if sys.version_info < (2, 6):
     raise Exception("To run this tool please use python 2.6")
@@ -46,7 +46,7 @@ def workflow(fin, fout, verbose=None):
     new_payload = [] # newly created payloads will be returned by LifeCycle
 
     with open(fin, 'r') as source:
-        initial_payload = cjson.decode(source.read())
+        initial_payload = json.load(source)
 
     if  verbose:
         print "\n### input workflow"
@@ -88,7 +88,7 @@ def workflow(fin, fout, verbose=None):
         new_payload.append(payload)
 
     with open(fout, 'w') as output:
-        output.write(cjson.encode(new_payload))
+        output.write(json.dump(new_payload))
 
     if  verbose:
         print "\n### output workflow"
