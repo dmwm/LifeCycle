@@ -15,16 +15,18 @@ def read_configparser(fname):
     "Read configuration"
     configdict = {
         'process':{ 'NumberOfDatasets':1,
-                    'NumberOfBlocks':1,
-                    'NumberOfFiles':1,
-                    'NumberOfRuns':1,
-                    'NumberOfLumis':1},
-        'dbs':{ 'DBSSkipFileFail':0,
-                'DBSChangeCksumFail':0,
-                'DBSChangeSizeFail':0},
-        'phedex': { 'PhedexSkipFileFail':0,
-                    'PhedexChangeCksumFail':0,
-                    'PhedexChangeSizeFail':0}
+                    'NumberOfBlocks':2,
+                    'NumberOfFiles':10,
+                    'NumberOfRuns':5,
+                    'NumberOfLumis':5},
+        'dbs':{ 'DBSSkipFileFail':0.01,
+                'DBSChangeCksumFail':0.01,
+                'DBSChangeSizeFail':0.01,
+                'DBSInstance':'dev'},
+        'phedex': { 'PhedexSkipFileFail':0.01,
+                    'PhedexChangeCksumFail':0.01,
+                    'PhedexChangeSizeFail':0.01,
+                    'PhedexDBSName':'global'},
         }
     if  not os.path.isfile(fname):
         return configdict
