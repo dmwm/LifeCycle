@@ -16,7 +16,7 @@ from optparse import OptionParser
 from DataProvider.core.data_provider import DataProvider
 from DataProvider.core.dbs_provider import DBSDataProvider
 from DataProvider.core.phedex_provider import PhedexDataProvider
-import DAS.utils.jsonwrapper as json
+import DataProvider.utils.jsonwrapper as json
 
 if sys.version_info < (2, 6):
     raise Exception("To run this tool please use python 2.6")
