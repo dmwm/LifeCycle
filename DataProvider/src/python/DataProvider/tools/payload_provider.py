@@ -54,27 +54,56 @@ def workflow(fin, fout, verbose=None):
         print pprint.pformat(initial_payload)
 
     ### read inputs from payload
-    cfg = initial_payload['workflow']['DataProviderCfg']
-    configdict = read_configparser(cfg)
+    cfg   = initial_payload['workflow']['DataProviderCfg']
+    cdict = read_configparser(cfg)
+    process_cfg = cdict['process']
+    dbs_cfg = cdict['dbs']
+    phedex_cfg = cdict['phedex']
+    workflow = initial_payload['workflow']
 
-    phedex_dbs_name = initial_payload['workflow']['PhedexDBSName']
-    number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
-    number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
-    number_of_files = initial_payload['workflow']['NumberOfFiles']
-    number_of_runs = initial_payload['workflow']['NumberOfRuns']
-    number_of_lumis = initial_payload['workflow']['NumberOfLumis']
+    phedex_dbs_name = phedex_cfg.get('PhedexDBSName', workflow['PhedexDBSName'])
+    number_of_datasets = process_cfg.get('NumberOfDatasets', workflow['NumberOfDatasets'])
+    number_of_blocks = process_cfg.get('NumberOfBlocks', workflow['NumberOfBlocks'])
+    number_of_files = process_cfg.get('NumberOfFiles', workflow['NumberOfFiles'])
+    number_of_runs = process_cfg.get('NumberOfRuns', workflow['NumberOfRuns'])
+    number_of_lumis = process_cfg.get('NumberOfLumis', workflow['NumberOfLumis'])
 
-    ###read error rate from payload
+    phedex_file  = phedex_cfg.get('PhedexSkipFileFail', float(workflow['PhedexSkipFileFail']))
+    phedex_cksum = phedex_cfg.get('PhedexChangeCksumFail', float(workflow['PhedexChangeCksumFail']))
+    phedex_size  = phedex_cfg.get('PhedexChangeSizeFail', float(workflow['PhedexChangeSizeFail']))
+
+    dbs_file  = phedex_cfg.get('DBSSkipFileFail', float(workflow['DBSSkipFileFail']))
+    dbs_cksum = phedex_cfg.get('DBSChangeCksumFail', float(workflow['DBSChangeCksumFail']))
+    dbs_size  = phedex_cfg.get('DBSChangeSizeFail', float(workflow['DBSChangeSizeFail']))
+
     try:
-        ### cast to float necessary because perl input is interpreted as a string
-        failure_rates = dict(PhedexSkipFileFail = float(initial_payload['workflow']['PhedexSkipFileFail']))
-        failure_rates.update(dict(PhedexChangeCksumFail = float(initial_payload['workflow']['PhedexChangeCksumFail'])))
-        failure_rates.update(dict(PhedexChangeSizeFail = float(initial_payload['workflow']['PhedexChangeSizeFail'])))
-        failure_rates.update(dict(DBSSkipFileFail = float(initial_payload['workflow']['DBSSkipFileFail'])))
-        failure_rates.update(dict(DBSChangeCksumFail = float(initial_payload['workflow']['DBSChangeCksumFail'])))
-        failure_rates.update(dict(DBSChangeSizeFail = float(initial_payload['workflow']['DBSChangeSizeFail'])))
+        failure_rates = dict(PhedexSkipFileFail=phedex_file)
+        failure_rates = dict(PhedexChangeCksumFail=phedex_chksum)
+        failure_rates = dict(PhedexChangeSizeFail=phedex_size)
+        failure_rates = dict(DBSSkipFileFail=dbs_file)
+        failure_rates = dict(DBSChangeCksumFail=dbs_chksum)
+        failure_rates = dict(DBSChangeSizeFail=dbs_size)
     except KeyError:
         failure_rates = None
+
+#    phedex_dbs_name = initial_payload['workflow']['PhedexDBSName']
+#    number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
+#    number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
+#    number_of_files = initial_payload['workflow']['NumberOfFiles']
+#    number_of_runs = initial_payload['workflow']['NumberOfRuns']
+#    number_of_lumis = initial_payload['workflow']['NumberOfLumis']
+
+    ###read error rate from payload
+    ### cast to float necessary because perl input is interpreted as a string
+#    try:
+#        failure_rates = dict(PhedexSkipFileFail = float(initial_payload['workflow']['PhedexSkipFileFail']))
+#        failure_rates.update(dict(PhedexChangeCksumFail = float(initial_payload['workflow']['PhedexChangeCksumFail'])))
+#        failure_rates.update(dict(PhedexChangeSizeFail = float(initial_payload['workflow']['PhedexChangeSizeFail'])))
+#        failure_rates.update(dict(DBSSkipFileFail = float(initial_payload['workflow']['DBSSkipFileFail'])))
+#        failure_rates.update(dict(DBSChangeCksumFail = float(initial_payload['workflow']['DBSChangeCksumFail'])))
+#        failure_rates.update(dict(DBSChangeSizeFail = float(initial_payload['workflow']['DBSChangeSizeFail'])))
+#    except KeyError:
+#        failure_rates = None
 
     phedex_provider = PhedexProvider(dbs_name=phedex_dbs_name, failure_rates=failure_rates)
     dbs_provider = DBSProvider(failure_rates=failure_rates)
