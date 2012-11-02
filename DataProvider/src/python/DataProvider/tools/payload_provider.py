@@ -17,7 +17,8 @@ from optparse import OptionParser
 from DataProvider.core.dbs_provider import DBSProvider
 from DataProvider.core.phedex_provider import PhedexProvider
 from DataProvider.utils.utils import deepcopy
-import DAS.utils.jsonwrapper as json
+from DataProvider.utils.config import read_configparser
+import DataProvider.utils.jsonwrapper as json
 
 if sys.version_info < (2, 6):
     raise Exception("To run this tool please use python 2.6")
@@ -53,6 +54,9 @@ def workflow(fin, fout, verbose=None):
         print pprint.pformat(initial_payload)
 
     ### read inputs from payload
+    cfg = initial_payload['workflow']['DataProviderCfg']
+    configdict = read_configparser(cfg)
+
     phedex_dbs_name = initial_payload['workflow']['PhedexDBSName']
     number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
     number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
