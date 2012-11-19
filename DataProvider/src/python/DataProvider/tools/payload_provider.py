@@ -127,7 +127,7 @@ def workflow(fin, fout, verbose=None):
         new_payload.append(payload)
 
     with open(fout, 'w') as output:
-        output.write(json.dump(new_payload))
+        json.dump(new_payload, output)
 
     if  verbose:
         print "\n### output workflow"
