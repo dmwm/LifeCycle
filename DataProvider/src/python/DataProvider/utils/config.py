@@ -9,7 +9,7 @@ Description: Configuration module for DataProvider
 
 # system modules
 import os
-import ConfigParser
+from ConfigParser import ConfigParser, NoOptionError
 
 def read_configparser(fname):
     "Read configuration"
@@ -19,22 +19,25 @@ def read_configparser(fname):
                     'NumberOfFiles':10,
                     'NumberOfRuns':5,
                     'NumberOfLumis':5},
-        'dbs':{ 'DBSSkipFileFail':0.01,
-                'DBSChangeCksumFail':0.01,
-                'DBSChangeSizeFail':0.01,
-                'DBSInstance':'dev'},
-        'phedex': { 'PhedexSkipFileFail':0.01,
-                    'PhedexChangeCksumFail':0.01,
-                    'PhedexChangeSizeFail':0.01,
+        'dbs':{ 'DBSSkipFileFail':None,
+                'DBSChangeCksumFail':None,
+                'DBSChangeSizeFail':None},
+        'phedex': { 'PhedexSkipFileFail':None,
+                    'PhedexChangeCksumFail':None,
+                    'PhedexChangeSizeFail':None,
                     'PhedexDBSName':'global'},
         }
     if  not os.path.isfile(fname):
         return configdict
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser()
     config.read(fname)
     for section in configdict.keys():
         for key, default in configdict[section].items():
-            configdict[section][key] = config.get(section, key, default)
+            try:
+                configdict[section][key] = config.get(section, key)
+            except NoOptionError:
+                ### use default value from dict above
+                pass
     return configdict
 
 def test():

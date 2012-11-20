@@ -54,57 +54,63 @@ def workflow(fin, fout, verbose=None):
         print pprint.pformat(initial_payload)
 
     ### read inputs from payload
-    cfg   = initial_payload['workflow']['DataProviderCfg']
-    cdict = read_configparser(cfg)
+    workflow = initial_payload['workflow']
+    # check if input are read from configuration file
+    try:
+        cfg   = workflow['DataProviderCfg']
+    except KeyError:
+        #No configuration, try to use values provided in the workflow
+        #for backward compatibility
+        #values using get are optional
+        cdict = { 'process' :
+                  {'NumberOfDatasets' : workflow['NumberOfDatasets'],
+                   'NumberOfBlocks' : workflow['NumberOfBlocks'],
+                   'NumberOfFiles' : workflow['NumberOfFiles'],
+                   'NumberOfRuns' : workflow['NumberOfRuns'],
+                   'NumberOfLumis' : workflow['NumberOfLumis']},
+                  'dbs' :
+                  {'DBSSkipFileFail': workflow.get('DBSSkipFileFail', None),
+                   'DBSChangeCksumFail': workflow.get('DBSChangeCksumFail', None),
+                   'DBSChangeSizeFail': workflow.get('DBSChangeSizeFail', None)},
+                  'phedex' :
+                  {'PhedexSkipFileFail' : workflow.get('PhedexSkipFileFail', None),
+                   'PhedexChangeCksumFail' : workflow.get('PhedexChangeCksumFail', None),
+                   'PhedexChangeSizeFail' : workflow.get('PhedexChangeSizeFail', None),
+                   'PhedexDBSName' : workflow['PhedexDBSName']}
+                  }
+    else:
+        cdict = read_configparser(cfg)
+
     process_cfg = cdict['process']
     dbs_cfg = cdict['dbs']
     phedex_cfg = cdict['phedex']
-    workflow = initial_payload['workflow']
 
-    phedex_dbs_name = phedex_cfg.get('PhedexDBSName', workflow['PhedexDBSName'])
-    number_of_datasets = process_cfg.get('NumberOfDatasets', workflow['NumberOfDatasets'])
-    number_of_blocks = process_cfg.get('NumberOfBlocks', workflow['NumberOfBlocks'])
-    number_of_files = process_cfg.get('NumberOfFiles', workflow['NumberOfFiles'])
-    number_of_runs = process_cfg.get('NumberOfRuns', workflow['NumberOfRuns'])
-    number_of_lumis = process_cfg.get('NumberOfLumis', workflow['NumberOfLumis'])
-
-    phedex_file  = phedex_cfg.get('PhedexSkipFileFail', float(workflow['PhedexSkipFileFail']))
-    phedex_cksum = phedex_cfg.get('PhedexChangeCksumFail', float(workflow['PhedexChangeCksumFail']))
-    phedex_size  = phedex_cfg.get('PhedexChangeSizeFail', float(workflow['PhedexChangeSizeFail']))
-
-    dbs_file  = phedex_cfg.get('DBSSkipFileFail', float(workflow['DBSSkipFileFail']))
-    dbs_cksum = phedex_cfg.get('DBSChangeCksumFail', float(workflow['DBSChangeCksumFail']))
-    dbs_size  = phedex_cfg.get('DBSChangeSizeFail', float(workflow['DBSChangeSizeFail']))
+    phedex_dbs_name = phedex_cfg.get('PhedexDBSName')
+    number_of_datasets = int(process_cfg.get('NumberOfDatasets'))
+    number_of_blocks = int(process_cfg.get('NumberOfBlocks'))
+    number_of_files = int(process_cfg.get('NumberOfFiles'))
+    number_of_runs = int(process_cfg.get('NumberOfRuns'))
+    number_of_lumis = int(process_cfg.get('NumberOfLumis'))
 
     try:
-        failure_rates = dict(PhedexSkipFileFail=phedex_file)
-        failure_rates = dict(PhedexChangeCksumFail=phedex_chksum)
-        failure_rates = dict(PhedexChangeSizeFail=phedex_size)
-        failure_rates = dict(DBSSkipFileFail=dbs_file)
-        failure_rates = dict(DBSChangeCksumFail=dbs_chksum)
-        failure_rates = dict(DBSChangeSizeFail=dbs_size)
-    except KeyError:
+        phedex_file  = float(phedex_cfg.get('PhedexSkipFileFail'))
+        phedex_cksum = float(phedex_cfg.get('PhedexChangeCksumFail'))
+        phedex_size  = float(phedex_cfg.get('PhedexChangeSizeFail'))
+
+        dbs_file  = float(dbs_cfg.get('DBSSkipFileFail'))
+        dbs_cksum = float(dbs_cfg.get('DBSChangeCksumFail'))
+        dbs_size  = float(dbs_cfg.get('DBSChangeSizeFail'))
+    # if value is None, the cast will fail, which means no failures are used
+    except TypeError:
         failure_rates = None
-
-#    phedex_dbs_name = initial_payload['workflow']['PhedexDBSName']
-#    number_of_datasets = initial_payload['workflow']['NumberOfDatasets']
-#    number_of_blocks = initial_payload['workflow']['NumberOfBlocks']
-#    number_of_files = initial_payload['workflow']['NumberOfFiles']
-#    number_of_runs = initial_payload['workflow']['NumberOfRuns']
-#    number_of_lumis = initial_payload['workflow']['NumberOfLumis']
-
-    ###read error rate from payload
-    ### cast to float necessary because perl input is interpreted as a string
-#    try:
-#        failure_rates = dict(PhedexSkipFileFail = float(initial_payload['workflow']['PhedexSkipFileFail']))
-#        failure_rates.update(dict(PhedexChangeCksumFail = float(initial_payload['workflow']['PhedexChangeCksumFail'])))
-#        failure_rates.update(dict(PhedexChangeSizeFail = float(initial_payload['workflow']['PhedexChangeSizeFail'])))
-#        failure_rates.update(dict(DBSSkipFileFail = float(initial_payload['workflow']['DBSSkipFileFail'])))
-#        failure_rates.update(dict(DBSChangeCksumFail = float(initial_payload['workflow']['DBSChangeCksumFail'])))
-#        failure_rates.update(dict(DBSChangeSizeFail = float(initial_payload['workflow']['DBSChangeSizeFail'])))
-#    except KeyError:
-#        failure_rates = None
-
+    else:
+        failure_rates = dict(PhedexSkipFileFail=phedex_file)
+        failure_rates.update(PhedexChangeCksumFail=phedex_cksum)
+        failure_rates.update(PhedexChangeSizeFail=phedex_size)
+        failure_rates.update(DBSSkipFileFail=dbs_file)
+        failure_rates.update(DBSChangeCksumFail=dbs_cksum)
+        failure_rates.update(DBSChangeSizeFail=dbs_size)
+    print failure_rates
     phedex_provider = PhedexProvider(dbs_name=phedex_dbs_name, failure_rates=failure_rates)
     dbs_provider = DBSProvider(failure_rates=failure_rates)
 
@@ -121,7 +127,7 @@ def workflow(fin, fout, verbose=None):
         new_payload.append(payload)
 
     with open(fout, 'w') as output:
-        output.write(json.dump(new_payload))
+        json.dump(new_payload, output)
 
     if  verbose:
         print "\n### output workflow"

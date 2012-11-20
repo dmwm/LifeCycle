@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 
 """
 JSON wrapper around different JSON python implementations.
@@ -24,10 +24,6 @@ except:
 import json
 if  not MODULE: # use default JSON module
     MODULE = "json"
-
-# stick so far with cjson, until yajl will be fully tested
-#MODULE = "cjson"
-MODULE = "yajl"
 
 def loads(idict, **kwargs):
     """
