@@ -13,6 +13,7 @@ has basic attributes, e.g. size.
 
 # system modules
 import random
+import time
 
 def generate_uid(base, seed='qwertyuiopasdfghjklzxcvbnm1234567890',
                     fixed=False):
@@ -238,7 +239,7 @@ class DataProvider(object):
         "Generate files"
         output = []
         for _ in range(0, number):
-            name = '%s.root' % generate_uid(5, self._seed, self._fixed)
+            name = '%s-%08x.root' % ( generate_uid(10, self._seed, self._fixed), int(time.time()) )
             doc  = dict(name = name)
             for key, val in attrs.items():
                 doc.update({key:val})
