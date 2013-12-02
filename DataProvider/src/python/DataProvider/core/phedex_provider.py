@@ -123,7 +123,7 @@ class PhedexDataProvider(DataProvider):
             _, prim, proc, tier = block_name.split('#')[0].split('/')
             attrs = {'prim':prim, 'proc':proc, 'tier':tier}
             if "tags" in dataset['dataset']:
-        	attrs['tags'] = dataset['dataset']['tags']
+                attrs['tags'] = dataset['dataset']['tags']
             res = self.files(number_of_files, **attrs)
             size = 0
             for row in res:
