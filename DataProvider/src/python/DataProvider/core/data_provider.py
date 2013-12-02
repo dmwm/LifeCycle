@@ -238,12 +238,21 @@ class DataProvider(object):
     def files(self, number, **attrs):
         "Generate files"
         output = []
-        for _ in range(0, number):
-            name = '%s-%08x.root' % ( generate_uid(10, self._seed, self._fixed), int(time.time()) )
-            doc  = dict(name = name)
-            for key, val in attrs.items():
-                doc.update({key:val})
-            output.append(dict(file=doc))
+        tags = attrs.get('tags', '')
+        if not tags:
+            for _ in range(0, number):
+                name = '%s-%08x.root' % ( generate_uid(10, self._seed, self._fixed), int(time.time()) )
+                doc  = dict(name = name)
+                for key, val in attrs.items():
+                    doc.update({key:val})
+                output.append(dict(file=doc))
+        else:
+            for item in tags:
+                customFiles = tags.get(item, '');
+                for _ in range(0, customFiles):
+                    name = '%s-%08x-%s.root' % ( generate_uid(10, self._seed, self._fixed), int(time.time()), item )
+                    doc  = dict(name = name)
+                    output.append(dict(file=doc))
         return output
 
     def runs(self, number, **attrs):
