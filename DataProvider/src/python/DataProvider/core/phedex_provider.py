@@ -79,7 +79,10 @@ class PhedexDataProvider(DataProvider):
         prim = attrs.get('prim', 'prim')
         proc = attrs.get('proc', 'proc')
         tier = attrs.get('tier', 'tier')
-        output = super(PhedexDataProvider, self).files(number)
+        tags = attrs.get('tags', '');
+        
+        output = super(PhedexDataProvider, self).files(number, **attrs) if tags else super(PhedexDataProvider, self).files(number)
+        
         # /store/data/acq_era/prim_dataset/data_tier/proc_version/lfn_counter/f.root
         idx = 0
         gbyte = 1024*1024*1024
@@ -119,7 +122,9 @@ class PhedexDataProvider(DataProvider):
             block_name = block['block']['name']
             _, prim, proc, tier = block_name.split('#')[0].split('/')
             attrs = {'prim':prim, 'proc':proc, 'tier':tier}
-            res  = self.files(number_of_files, **attrs)
+            if "tags" in dataset['dataset']:
+                attrs['tags'] = dataset['dataset']['tags']
+            res = self.files(number_of_files, **attrs)
             size = 0
             for row in res:
                 size += row['file']['bytes']
