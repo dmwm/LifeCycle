@@ -14,7 +14,7 @@ it as following:
 
 On lxplus you may use Tony's setup:
 
-``
+```
 cd workdir
 # get LifeCycle code
 git clone git@github.com:dmwm/LifeCycle.git
@@ -28,6 +28,6 @@ cp -r LifeCycle/DAS LifeCycleTestbed
 cd LifeCycletestbed
 # run DAS workflow
 ./Lifecycle.pl --config DAS/DAS.conf
-``
+```
 
 [1] https://twiki.cern.ch/twiki/bin/viewauth/CMS/PhedexProjLifeCycleTestbed
