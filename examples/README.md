@@ -1,8 +1,7 @@
 This directory provides useful set of examples who to adopt
 LifeCycle agent to specific application.
 
-DAS
-===
+### DAS
 
 DAS, CMS Data Aggregation Service, collects and aggregates information
 from various CMS data-services.
