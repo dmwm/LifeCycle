@@ -29,7 +29,6 @@ def spawn_workflow():
         ['dataset', 'block', 'file', 'summary', 'file,lumi', 'file,run,lumi'])
     print "host=%s, seed=%s, ntests=%s, lkeys=%s" \
             % (host, query, ntests, lkeys)
-    sys.exit(0)
 
     # Fetch list of dataset from DAS server
     res = get_data(host, query)
