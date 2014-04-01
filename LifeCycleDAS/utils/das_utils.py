@@ -17,8 +17,8 @@ import urllib2
 import cookielib
 
 # local modules
-from utils.static import DAS_CLIENT, CKEY, CERT
-from utils.url_utils import HTTPSClientAuthHandler
+from LifeCycleDAS.utils.static import DAS_CLIENT, CKEY, CERT
+from LifeCycleDAS.utils.url_utils import HTTPSClientAuthHandler
 
 def gen_queries(datasets, lkeys=['file', 'dataset', 'block', 'summary']):
     "Generate random queries from provided dataset list"

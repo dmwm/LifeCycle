@@ -8,7 +8,7 @@ Description: static module contains list of static variables
 """
 
 # local modules
-from utils.url_utils import get_key_cert
+from LifeCycleDAS.utils.url_utils import get_key_cert
 
 DAS_CLIENT = 'LifeCycleDASAgent'
 CKEY, CERT = get_key_cert()
