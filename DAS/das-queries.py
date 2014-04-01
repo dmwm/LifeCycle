@@ -13,8 +13,8 @@ import copy
 import time
 
 # local modules
-from utils.options import options
-from utils.das_utils import get_data, gen_queries
+from LifeCycleDAS.utils.options import options
+from LifeCycleDAS.utils.das_utils import get_data, gen_queries
 
 def spawn_workflow():
     inp, out = options()

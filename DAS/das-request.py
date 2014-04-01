@@ -11,8 +11,8 @@ Description:
 import json
 
 # local modules
-from utils.options import options
-from utils.das_utils import get_data
+from LifeCycleDAS.utils.options import options
+from LifeCycleDAS.utils.das_utils import get_data
 
 def poll_request():
     inp, out = options()

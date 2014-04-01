@@ -11,7 +11,7 @@ Description: DAS results module
 import json
 
 # local modules
-from utils.options import options
+from LifeCycleDAS.utils.options import options
 
 def das_results():
     inp, out = options()
