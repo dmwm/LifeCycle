@@ -89,6 +89,7 @@ def get_data(host, query, pid=None, threshold=300, debug=None):
             pid = data
         else:
             pid = None
+            break
         print "Waiting for pid=%s, sleep=%s" % (pid, sleep)
         time.sleep(sleep)
         if  sleep < wtime:
